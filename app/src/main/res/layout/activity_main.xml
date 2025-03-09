@@ -1,7 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textViewCityName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:text="City Name" />
+
+    <TextView
+        android:id="@+id/textViewTemperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="Temperature" />
+
+    <TextView
+        android:id="@+id/textViewDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="Description" />
+
+    <EditText
+        android:id="@+id/editTextCityName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="Da Nang"
+        android:hint="Nhập tên thành phố" />
+
+    <Button
+        android:id="@+id/buttonFetchWeatherCity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lấy Thời tiết Theo Thành phố" />
+
+    <Button
+        android:id="@+id/buttonFetchWeatherLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lấy Thời tiết Vị trí Hiện tại" />
 
 </LinearLayout>

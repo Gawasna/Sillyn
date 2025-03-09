@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -53,11 +54,15 @@ dependencies {
     implementation(libs.androidx.material3)
 
     // Chỉnh sửa phiên bản Firebase BOM tương thích với API 30
-    implementation(platform("com.google.firebase:firebase-bom:29.0.0"))  // Thay đổi thành phiên bản Firebase cũ hơn (Firebase BOM version phù hợp với API 30)
+    implementation(platform(libs.firebase.bom))  // Thay đổi thành phiên bản Firebase cũ hơn (Firebase BOM version phù hợp với API 30)
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation(libs.androidx.constraintlayout)
     implementation(libs.material)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.play.services.location)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

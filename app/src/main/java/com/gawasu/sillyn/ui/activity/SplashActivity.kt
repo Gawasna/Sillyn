@@ -1,52 +1,47 @@
 package com.gawasu.sillyn.ui.activity
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.gawasu.sillyn.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import androidx.lifecycle.lifecycleScope
+import com.gawasu.sillyn.ui.viewmodel.SplashViewModel
 import kotlinx.coroutines.launch
+import com.gawasu.sillyn.databinding.ActivitySplashBinding
 
 class SplashActivity : AppCompatActivity() {
+    private val viewModel: SplashViewModel by viewModels()
+    private lateinit var binding: ActivitySplashBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_splash)
+        binding = ActivitySplashBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        CoroutineScope(Dispatchers.Main).launch {
-            delay(2000)
+        val progressBar = binding.splashProgressBar
 
-            val isFirstLaunch = isFirstTimeAppLaunch() // Kiểm tra lần đầu mở app
-            val isLoggedInOrOffline = checkLoginState() // Kiểm tra trạng thái đăng nhập/offline
-
-            val nextActivityIntent = when {
-                isFirstLaunch -> {
-                    Intent(this@SplashActivity, LoginActivity::class.java) // Lần đầu, vào LoginActivity
-                }
-                isLoggedInOrOffline -> {
-                    Intent(this@SplashActivity, TaskListActivity::class.java) // Đã login/offline, vào TaskListActivity (màn hình chính giả định)
-                }
-                else -> {
-                    Intent(this@SplashActivity, LoginActivity::class.java) // Chưa login/offline và không phải lần đầu, vào LoginActivity
+        lifecycleScope.launch {
+            launch {
+                viewModel.progress.collect { progress ->
+                    progressBar.progress = progress
                 }
             }
 
-            startActivity(nextActivityIntent)
-            finish()
+            launch {
+                viewModel.navigateToLogin.collect { shouldNavigate ->
+//                    shouldNavigate?.let {
+//                        if (it) {
+//                            startActivity(Intent(this@SplashActivity, LoginActivity::class.java))
+//                        } else {
+//                            startActivity(Intent(this@SplashActivity, TaskListActivity::class.java))
+//                        }
+//                        finish()
+//                    }
+                    shouldNavigate?.let {
+                        startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    }
+                }
+            }
         }
-    }
-
-    private fun isFirstTimeAppLaunch(): Boolean {
-        val sharedPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        return sharedPrefs.getBoolean("isFirstLaunch", true) // Mặc định là true (lần đầu)
-    }
-
-
-    private fun checkLoginState(): Boolean {
-        val sharedPrefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        return sharedPrefs.getBoolean("isLoggedIn", false) || sharedPrefs.getBoolean("useOfflineMode", false)
     }
 }
