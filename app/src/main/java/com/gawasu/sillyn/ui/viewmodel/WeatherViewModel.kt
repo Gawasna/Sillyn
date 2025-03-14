@@ -28,7 +28,7 @@ class WeatherViewModel : ViewModel() {
                 val response = weatherApi.getWeather(city = city, apiKey = apiKey)
                 if (response.isSuccessful) {
                     _weatherData.postValue(response.body())
-                    _error.postValue(null) // Clear error message
+                    _error.postValue(null)
                 } else {
                     _weatherData.postValue(null)
                     _error.postValue("Lỗi API: ${response.code()} - ${response.message()}")

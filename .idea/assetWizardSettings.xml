@@ -67,6 +67,7 @@
                                           <PersistentState>
                                             <option name="values">
                                               <map>
+                                                <entry key="color" value="000000" />
                                                 <entry key="imagePath" value="C:\Users\hungl\AppData\Local\Temp\ic_android_black_24dp.xml" />
                                               </map>
                                             </option>
@@ -79,7 +80,7 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\Users\hungl\Downloads\Temp\sd\Sprite-0001w1-export.png" />
+                                                <entry key="imagePath" value="C:\Users\hungl\Downloads\Temp\sd\Full-ww-crop.png" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -111,7 +112,10 @@
                                   </option>
                                   <option name="values">
                                     <map>
+                                      <entry key="foregroundLayerName" value="ic_sp_logo_1" />
+                                      <entry key="generateWebpIcons" value="false" />
                                       <entry key="outputName" value="ic_launcher_test" />
+                                      <entry key="previewDensity" value="xxhdpi" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -275,6 +279,11 @@
                                           </PersistentState>
                                         </value>
                                       </entry>
+                                    </map>
+                                  </option>
+                                  <option name="values">
+                                    <map>
+                                      <entry key="previewDensity" value="xxhdpi" />
                                     </map>
                                   </option>
                                 </PersistentState>

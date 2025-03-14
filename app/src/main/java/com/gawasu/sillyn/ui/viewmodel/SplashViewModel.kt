@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.min
 
 class SplashViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application.applicationContext
@@ -28,30 +29,32 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
             Log.d("SplashViewModel", "Start Splash Screen")
 
             // **Giai đoạn 1: Loading UI**
-            for (p in 0..50 step 2) {
-                _progress.value = p
-                delay(30)
-            }
+            animateProgress(0, 50, 300)
             Log.d("SplashViewModel", "UI Loaded")
 
             // **Giai đoạn 2: Kiểm tra lần đầu mở app**
             val isFirstTime = isFirstTimeAppLaunch()
-            for (p in 51..70 step 2) {
-                _progress.value = p
-                delay(50)
-            }
+            animateProgress(50, 75, 200)
             Log.d("SplashViewModel", "First Time Launch: $isFirstTime")
 
             // **Giai đoạn 3: Kiểm tra kết nối Internet**
             val hasInternet = hasInternetConnection()
-            for (p in 71..100 step 2) {
-                _progress.value = p
-                delay(50)
-            }
+            animateProgress(75, 100, 300)
             Log.d("SplashViewModel", "Internet Connected: $hasInternet")
 
             // **Xác định điều hướng**
             _navigateToLogin.value = isFirstTime && hasInternet
+        }
+    }
+
+    private suspend fun animateProgress(start: Int, end: Int, duration: Long) {
+        val steps = end - start
+        val stepTime = duration / steps
+
+        for (i in 0..steps) {
+            val progressValue = start + i
+            _progress.value = min(progressValue, 100)
+            delay(stepTime)
         }
     }
 
