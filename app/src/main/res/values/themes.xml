@@ -14,7 +14,7 @@
 
     </style>
     <style name="Theme.Sillyn.SplashScreenTheme" parent="Theme.Sillyn">
-        <item name="android:windowFullscreen">true</item> <!-- Ẩn status bar -->
-        <item name="android:windowNoTitle">true</item>   <!-- Ẩn title bar (action bar) -->
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item> 
     </style>
 </resources>

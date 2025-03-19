@@ -4,29 +4,26 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.gawasu.sillyn.databinding.ActivityMainBinding
 import com.gawasu.sillyn.ui.viewmodel.WeatherViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.launch
-import java.io.IOException
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val viewModel: WeatherViewModel by viewModels()
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var auth: FirebaseAuth
 
     // ActivityResultLauncher cho Permission Request (Modern way - Best practice)
     private lateinit var locationPermissionRequest: ActivityResultLauncher<Array<String>>
@@ -36,9 +33,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        auth = FirebaseAuth.getInstance()
+
+        //TODO: switch to text soon, using toast temporary
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            Toast.makeText(this, "Chào mừng, ${currentUser.email}!", Toast.LENGTH_SHORT).show()
+            //binding.textViewMain.text = "Chào mừng, ${currentUser.email}!" // Hiển thị thông tin user (ví dụ email)
+        } else {
+            Toast.makeText(this, "Chưa đăng nhập", Toast.LENGTH_SHORT).show()
+            //binding.textViewMain.text = "Chưa đăng nhập." // Nếu chưa đăng nhập (ví dụ, do lỗi)
+        }
+
+        // TODO: move locationPermissionRequest out of this activity
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
-        // Khởi tạo ActivityResultLauncher cho Location Permissions
         locationPermissionRequest = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { permissions ->

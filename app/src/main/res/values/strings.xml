@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Sillyn</string>
+    <string name="app_name_2">Sillyn Todolist</string>
+    <string name="create_new_account">Tạo tài khoản mới</string>
+    <string name="password">Mật khẩu</string>
+    <string name="example_mail">example@gmail.com</string>
+    <string name="login_by_email">Đăng nhập bằng Email</string>
+    <string name="login_by_google">Tiếp tục với Google</string>
+    <string name="no_login">Tiếp tục mà không cần tài khoản</string>
 </resources>

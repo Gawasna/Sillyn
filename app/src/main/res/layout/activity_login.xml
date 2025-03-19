@@ -7,11 +7,19 @@
     android:padding="16dp"
     tools:context=".ui.activity.LoginActivity">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="138dp"
+        android:layout_height="103dp"
+        app:srcCompat="@drawable/full_ww_crop"
+        tools:layout_editor_absoluteX="122dp"
+        tools:layout_editor_absoluteY="80dp" />
+
     <TextView
         android:id="@+id/loginTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sillyn Todolist"
+        android:text="@string/app_name_2"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
@@ -21,14 +29,15 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/emailTextInputLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="example@gmail.com"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        app:layout_constraintTop_toBottomOf="@id/loginTitleTextView"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="124dp"
+        android:hint="@string/example_mail"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/loginTitleTextView">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
@@ -40,14 +49,15 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordTextInputLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Mật khẩu"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        app:layout_constraintTop_toBottomOf="@id/emailTextInputLayout"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="20dp"
+        android:hint="@string/password"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp">
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emailTextInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEditText"
@@ -61,46 +71,53 @@
         android:id="@+id/emailLoginButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Đăng nhập bằng Email"
-        app:layout_constraintTop_toBottomOf="@id/passwordTextInputLayout"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="24dp"
+        android:text="@string/login_by_email"
+        app:icon="@android:drawable/ic_dialog_email"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/passwordTextInputLayout" />
 
     <Button
         android:id="@+id/googleLoginButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Tiếp tục với Google"
-        app:layout_constraintTop_toBottomOf="@id/emailLoginButton"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="12dp"
+        android:text="@string/login_by_google"
+        android:textColorLink="#EBFFFFFF"
+        app:icon="@drawable/googleg_standard_color_18"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emailLoginButton" />
 
     <TextView
         android:id="@+id/createAccountTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tạo tài khoản mới"
-        android:textSize="16sp"
-        android:textColor="@color/design_default_color_primary"
-        app:layout_constraintTop_toBottomOf="@id/googleLoginButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:clickable="true"
         android:focusable="true"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:text="@string/create_new_account"
+        android:textColor="@color/design_default_color_primary"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/googleLoginButton" />
 
     <Button
         android:id="@+id/continueWithoutAccountButton"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Tiếp tục mà không cần tài khoản"
-        style="@style/Widget.Material3.Button.TextButton"
-        app:layout_constraintTop_toBottomOf="@id/createAccountTextView"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="12dp"
+        android:text="@string/no_login"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"/>
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/createAccountTextView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
