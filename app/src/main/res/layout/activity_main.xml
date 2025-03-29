@@ -1,49 +1,59 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    tools:context=".MainActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:navigationIcon="@drawable/ic_add"
+        app:title="Hôm nay"
+        app:titleTextColor="@android:color/white"
+        app:menu="@menu/main_menu" />
 
     <TextView
-        android:id="@+id/textViewCityName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:text="City Name" />
-
-    <TextView
-        android:id="@+id/textViewTemperature"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="Temperature" />
-
-    <TextView
-        android:id="@+id/textViewDescription"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="Description" />
-
-    <EditText
-        android:id="@+id/editTextCityName"
+        android:id="@+id/textViewUserInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autofillHints="Da Nang"
-        android:hint="Nhập tên thành phố" />
+        android:padding="16dp"
+        android:gravity="center"
+        android:text="Đang tải thông tin người dùng..."
+        android:textSize="16sp" />
 
-    <Button
-        android:id="@+id/buttonFetchWeatherCity"
+    <!-- Nội dung chính (RecyclerView) -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewTasks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+    <!-- Floating Action Button (FAB) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddTask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Lấy Thời tiết Theo Thành phố" />
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:contentDescription="Thêm nhiệm vụ"
+        android:src="@drawable/ic_add"
+        app:backgroundTint="?attr/colorAccent" />
 
-    <Button
-        android:id="@+id/buttonFetchWeatherLocation"
-        android:layout_width="wrap_content"
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Lấy Thời tiết Vị trí Hiện tại" />
+        android:layout_gravity="bottom"
+        app:menu="@menu/bottom_nav_menu" />
 
 </LinearLayout>

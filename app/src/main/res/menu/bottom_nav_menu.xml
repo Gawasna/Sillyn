@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_tasks"
+        android:icon="@drawable/baseline_check_box_outline_blank_24"
+        android:title="Nhiệm Vụ" />
+
+    <item
+        android:id="@+id/nav_calendar"
+        android:icon="@drawable/baseline_calendar_today_24"
+        android:title="Lịch" />
+
+    <item
+        android:id="@+id/nav_projects"
+        android:icon="@drawable/sharp_border_all_24"
+        android:title="Dự Án" />
+
+    <item
+        android:id="@+id/nav_search"
+        android:icon="@drawable/rounded_circle_24"
+        android:title="Tìm Kiếm" />
+
+    <item
+        android:id="@+id/nav_more"
+        android:icon="@drawable/ic_add"
+        android:title="Thêm" />
+</menu>

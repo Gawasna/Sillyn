@@ -1,9 +1,12 @@
 package com.gawasu.sillyn.ui.activity
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,10 +14,15 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.gawasu.sillyn.R
 import com.gawasu.sillyn.databinding.ActivityMainBinding
+import com.gawasu.sillyn.ui.viewmodel.AppStateManager
 import com.gawasu.sillyn.ui.viewmodel.WeatherViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 
@@ -33,7 +41,18 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Set up toolbar
+        setSupportActionBar(binding.toolbar)
+
+        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
+        //appStateManager = AppStateManager.getInstance(applicationContext)
+
+        // Set up UI elements
+        setupUI()
+
+        // Set up observers
+        //setupObservers()
 
         //TODO: switch to text soon, using toast temporary
         val currentUser = auth.currentUser
@@ -44,7 +63,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Chưa đăng nhập", Toast.LENGTH_SHORT).show()
             //binding.textViewMain.text = "Chưa đăng nhập." // Nếu chưa đăng nhập (ví dụ, do lỗi)
         }
-
+        
         // TODO: move locationPermissionRequest out of this activity
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -66,16 +85,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-        viewModel.weatherData.observe(this) { weatherResponse ->
-            if (weatherResponse != null) {
-                // Cập nhật UI với dữ liệu thời tiết
-                binding.textViewCityName.text = weatherResponse.name
-                binding.textViewTemperature.text = weatherResponse.main?.temp?.toString() + " °C"
-                binding.textViewDescription.text = weatherResponse.weather?.firstOrNull()?.description
-                // ... update các view khác ...
-            }
-        }
+//        viewModel.weatherData.observe(this) { weatherResponse ->
+//            if (weatherResponse != null) {
+//                // Cập nhật UI với dữ liệu thời tiết
+//                binding.textViewCityName.text = weatherResponse.name
+//                binding.textViewTemperature.text = weatherResponse.main?.temp?.toString() + " °C"
+//                binding.textViewDescription.text = weatherResponse.weather?.firstOrNull()?.description
+//                // ... update các view khác ...
+//            }
+//        }
 
         viewModel.error.observe(this) { errorMessage ->
             if (errorMessage != null) {
@@ -84,19 +102,155 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.buttonFetchWeatherLocation.setOnClickListener {
-            checkLocationPermissionAndFetchWeather() // Gọi hàm kiểm tra quyền và lấy thời tiết theo vị trí
-        }
+//        binding.buttonFetchWeatherLocation.setOnClickListener {
+//            checkLocationPermissionAndFetchWeather() // Gọi hàm kiểm tra quyền và lấy thời tiết theo vị trí
+//        }
+//
+//        binding.buttonFetchWeatherCity.setOnClickListener {
+//            val cityName = binding.editTextCityName.text.toString()
+//            if (cityName.isNotBlank()) {
+//                viewModel.fetchWeatherData(cityName) // Lấy thời tiết theo tên thành phố (không cần location permission)
+//            } else {
+//                Snackbar.make(binding.root, "Vui lòng nhập tên thành phố", Snackbar.LENGTH_SHORT).show()
+//            }
+//        }
+    }
 
-        binding.buttonFetchWeatherCity.setOnClickListener {
-            val cityName = binding.editTextCityName.text.toString()
-            if (cityName.isNotBlank()) {
-                viewModel.fetchWeatherData(cityName) // Lấy thời tiết theo tên thành phố (không cần location permission)
-            } else {
-                Snackbar.make(binding.root, "Vui lòng nhập tên thành phố", Snackbar.LENGTH_SHORT).show()
+    private fun setupUI() {
+        // Set up the bottom navigation
+        binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_tasks -> {
+                    // TODO: Show tasks view
+                    true
+                }
+                R.id.nav_calendar -> {
+                    // TODO: Show calendar view
+                    true
+                }
+//                R.id.nav_profile -> {
+//                    // TODO: Show profile view
+//                    true
+//                }
+                else -> false
             }
         }
+
+        // Set up FAB
+        binding.fabAddTask.setOnClickListener {
+            // TODO: Open add task activity or dialog
+        }
+
+        // Update user info
+        //updateUserInfo()
     }
+
+//    private fun setupObservers() {
+//        // Observe app state changes
+//        appStateManager.appState.observe(this) { state ->
+//            // Update UI based on connection state
+//            if (!state.isOnline) {
+//                // Show offline banner or notification
+//            }
+//
+//            // Update login-dependent UI elements
+//            if (state.isLoggedIn) {
+//                binding.textViewUserInfo.text = "Xin chào, ${state.currentUserEmail ?: "Người dùng"}"
+//            } else {
+//                binding.textViewUserInfo.text = "Chưa đăng nhập"
+//            }
+//        }
+//    }
+
+//    private fun updateUserInfo() {
+//        val currentUser = auth.currentUser
+//        if (currentUser != null) {
+//            binding.textViewUserInfo.text = "Xin chào, ${currentUser.displayName ?: currentUser.email ?: "Người dùng"}"
+//        } else {
+//            binding.textViewUserInfo.text = "Chưa đăng nhập"
+//        }
+//    }
+//
+//    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+//        menuInflater.inflate(R.menu.main_menu, menu)
+//        return true
+//    }
+//
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            R.id.menu_logout -> {
+//                showLogoutConfirmationDialog()
+//                true
+//            }
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
+//
+//    private fun showLogoutConfirmationDialog() {
+//        MaterialAlertDialogBuilder(this)
+//            .setTitle("Đăng xuất")
+//            .setMessage("Bạn có chắc chắn muốn đăng xuất không?")
+//            .setNegativeButton("Hủy") { dialog, _ ->
+//                dialog.dismiss()
+//            }
+//            .setPositiveButton("Đăng xuất") { _, _ ->
+//                signOut()
+//            }
+//            .show()
+//    }
+//
+//    private fun signOut() {
+//        // Firebase sign out
+//        auth.signOut()
+//
+//        // Google sign out
+//        val googleSignInClient = GoogleSignIn.getClient(
+//            this,
+//            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+//        )
+//        googleSignInClient.signOut().addOnCompleteListener(this) {
+//            // Redirect to login activity
+//            val intent = Intent(this, LoginActivity::class.java)
+//            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+//            startActivity(intent)
+//            finish()
+//        }
+//    }
+
+//    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+//        return when (item.itemId) {
+//            R.id.menu_logout -> {
+//                signOut()
+//                true
+//            }
+//            else -> super.onOptionsItemSelected(item)
+//        }
+//    }
+
+    
+
+//    private fun signOut() {
+//        // Firebase sign out
+//        auth.signOut()
+//
+//        // Google sign out (if used)
+//        val googleSignInClient = GoogleSignIn.getClient(
+//            this,
+//            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+//        )
+//        googleSignInClient.signOut().addOnCompleteListener(this) {
+//            // Clear saved preferences
+//            getSharedPreferences("app_prefs", MODE_PRIVATE)
+//                .edit()
+//                .putBoolean("isLoggedIn", false)
+//                .apply()
+//
+//            // Redirect to login activity
+//            val intent = Intent(this, LoginActivity::class.java)
+//            startActivity(intent)
+//            finish()
+//        }
+//    }
 
     private fun checkLocationPermissionAndFetchWeather() {
         // Kiểm tra xem đã có quyền ACCESS_COARSE_LOCATION chưa

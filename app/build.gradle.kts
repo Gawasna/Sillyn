@@ -63,6 +63,8 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.play.services.location)
     implementation(libs.play.services.auth)
+    implementation(libs.google.material)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

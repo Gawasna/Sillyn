@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_calendar"
+        android:icon="@drawable/baseline_calendar_today_24"
+        android:title="Lịch"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_add"
+        android:title="Tùy chọn"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_logout"
+        android:title="Đăng xuất"
+        app:showAsAction="never" />
+</menu>
