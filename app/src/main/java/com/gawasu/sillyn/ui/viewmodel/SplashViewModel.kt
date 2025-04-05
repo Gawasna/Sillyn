@@ -42,12 +42,12 @@ class SplashViewModel(
 
             // Determine navigation target based on app state
             _navigationTarget.value = when (currentState) {
-                AppState.FirstLaunch -> NavigationTarget.ONBOARDING
+                AppState.FirstLaunch -> NavigationTarget.LOGIN
                 AppState.OnboardingComplete -> NavigationTarget.LOGIN
                 AppState.LoggedIn -> NavigationTarget.MAIN
                 AppState.LoggedInOffline -> NavigationTarget.MAIN
                 AppState.NoAccount -> NavigationTarget.LOGIN
-                null -> NavigationTarget.LOGIN // Default to login if state is null
+                null -> NavigationTarget.LOGIN
             }
 
             Log.d(TAG, "Navigation target: ${_navigationTarget.value}")

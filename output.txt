@@ -1,0 +1,180 @@
+├── app
+│   ├── src
+│   │   ├── androidTest
+│   │   │   └── java
+│   │   │       └── com
+│   │   │           └── gawasu
+│   │   │               └── sillyn
+│   │   │                   └── ExampleInstrumentedTest.kt
+│   │   ├── main
+│   │   │   ├── java
+│   │   │   │   └── com
+│   │   │   │       └── gawasu
+│   │   │   │           └── sillyn
+│   │   │   │               ├── application
+│   │   │   │               │   └── MyApp.kt
+│   │   │   │               ├── data
+│   │   │   │               │   ├── api
+│   │   │   │               │   │   └── ApiService.kt
+│   │   │   │               │   ├── db
+│   │   │   │               │   │   ├── entity
+│   │   │   │               │   │   │   └── TaskEntity.kt
+│   │   │   │               │   │   ├── migration
+│   │   │   │               │   │   └── AppDatabase.kt
+│   │   │   │               │   ├── firebase
+│   │   │   │               │   │   ├── FirestoreAuthService.kt
+│   │   │   │               │   │   └── FirestoreService.kt
+│   │   │   │               │   ├── local
+│   │   │   │               │   ├── location
+│   │   │   │               │   │   └── LocationProvider.kt
+│   │   │   │               │   ├── remote
+│   │   │   │               │   │   ├── ApiClient.kt
+│   │   │   │               │   │   ├── FirestoreDataSource.kt
+│   │   │   │               │   │   ├── FirestoreService.kt
+│   │   │   │               │   │   └── FirestoreServiceImpl.kt
+│   │   │   │               │   ├── repository
+│   │   │   │               │   │   ├── AuthRepository.kt
+│   │   │   │               │   │   ├── TaskRepository.kt
+│   │   │   │               │   │   ├── UserRepository.kt
+│   │   │   │               │   │   └── UserRepositoryImpl.kt
+│   │   │   │               │   └── AppState.kt
+│   │   │   │               ├── domain
+│   │   │   │               │   ├── model
+│   │   │   │               │   │   ├── Task.kt
+│   │   │   │               │   │   ├── User.kt
+│   │   │   │               │   │   └── Weather.kt
+│   │   │   │               │   └── repository
+│   │   │   │               ├── ui
+│   │   │   │               │   ├── activity
+│   │   │   │               │   │   ├── AuthenticationActivity.kt
+│   │   │   │               │   │   ├── MainActivity.kt
+│   │   │   │               │   │   └── SplashActivity.kt
+│   │   │   │               │   ├── adapter
+│   │   │   │               │   │   └── TaskAdapter.kt
+│   │   │   │               │   ├── fragment
+│   │   │   │               │   │   ├── AuthenticationOptionsFragment.kt
+│   │   │   │               │   │   ├── EmailLoginFragment.kt
+│   │   │   │               │   │   └── ForgotPasswordFragment.kt
+│   │   │   │               │   ├── theme
+│   │   │   │               │   │   ├── Color.kt
+│   │   │   │               │   │   ├── Theme.kt
+│   │   │   │               │   │   └── Type.kt
+│   │   │   │               │   └── viewmodel
+│   │   │   │               │       ├── AppStateManager.kt
+│   │   │   │               │       ├── AuthViewModel.kt
+│   │   │   │               │       ├── AuthViewModelFactory.kt
+│   │   │   │               │       ├── MainViewModel.kt
+│   │   │   │               │       ├── SplashViewModel.kt
+│   │   │   │               │       └── WeatherViewModel.kt
+│   │   │   │               └── utils
+│   │   │   │                   ├── FirebaseResult.kt
+│   │   │   │                   └── TypeConverter.kt
+│   │   │   ├── res
+│   │   │   │   ├── anim
+│   │   │   │   │   ├── fade_in.xml
+│   │   │   │   │   └── fade_out.xml
+│   │   │   │   ├── drawable
+│   │   │   │   │   ├── baseline_add_24.xml
+│   │   │   │   │   ├── baseline_arrow_back_24.xml
+│   │   │   │   │   ├── baseline_calendar_today_24.xml
+│   │   │   │   │   ├── baseline_check_box_outline_blank_24.xml
+│   │   │   │   │   ├── dot_active.xml
+│   │   │   │   │   ├── dot_inactive.xml
+│   │   │   │   │   ├── full_ww_crop.png
+│   │   │   │   │   ├── ic_add.xml
+│   │   │   │   │   ├── ic_launcher_background.xml
+│   │   │   │   │   ├── ic_launcher_foreground.xml
+│   │   │   │   │   ├── ic_launcher_test_background.xml
+│   │   │   │   │   ├── rounded_circle_24.xml
+│   │   │   │   │   ├── sharp_border_all_24.xml
+│   │   │   │   │   └── side_nav_bar.xml
+│   │   │   │   ├── layout
+│   │   │   │   │   ├── activity_authentication.xml
+│   │   │   │   │   ├── activity_main.xml
+│   │   │   │   │   ├── activity_splash.xml
+│   │   │   │   │   ├── app_bar_main.xml
+│   │   │   │   │   ├── backup_main_fragment.xml
+│   │   │   │   │   ├── fragment_authentication_options.xml
+│   │   │   │   │   ├── fragment_email_login.xml
+│   │   │   │   │   ├── fragment_forgot_password.xml
+│   │   │   │   │   └── nav_header_main.xml
+│   │   │   │   ├── menu
+│   │   │   │   │   ├── bottom_nav_menu.xml
+│   │   │   │   │   ├── drawer_menu.xml
+│   │   │   │   │   ├── main_menu.xml
+│   │   │   │   │   └── nav_drawer_menu.xml
+│   │   │   │   ├── mipmap-anydpi-v26
+│   │   │   │   │   ├── ic_launcher_round.xml
+│   │   │   │   │   ├── ic_launcher_test_round.xml
+│   │   │   │   │   ├── ic_launcher_test.xml
+│   │   │   │   │   └── ic_launcher.xml
+│   │   │   │   ├── mipmap-hdpi
+│   │   │   │   │   ├── ic_launcher_round.webp
+│   │   │   │   │   ├── ic_launcher_test_foreground.webp
+│   │   │   │   │   ├── ic_launcher_test_round.png
+│   │   │   │   │   ├── ic_launcher_test.png
+│   │   │   │   │   ├── ic_launcher.webp
+│   │   │   │   │   └── ic_sp_logo_1.png
+│   │   │   │   ├── mipmap-mdpi
+│   │   │   │   │   ├── ic_launcher_round.webp
+│   │   │   │   │   ├── ic_launcher_test_foreground.webp
+│   │   │   │   │   ├── ic_launcher_test_round.png
+│   │   │   │   │   ├── ic_launcher_test.png
+│   │   │   │   │   ├── ic_launcher.webp
+│   │   │   │   │   └── ic_sp_logo_1.png
+│   │   │   │   ├── mipmap-xhdpi
+│   │   │   │   │   ├── ic_launcher_round.webp
+│   │   │   │   │   ├── ic_launcher_test_foreground.webp
+│   │   │   │   │   ├── ic_launcher_test_round.png
+│   │   │   │   │   ├── ic_launcher_test.png
+│   │   │   │   │   ├── ic_launcher.webp
+│   │   │   │   │   └── ic_sp_logo_1.png
+│   │   │   │   ├── mipmap-xxhdpi
+│   │   │   │   │   ├── ic_launcher_round.webp
+│   │   │   │   │   ├── ic_launcher_test_foreground.webp
+│   │   │   │   │   ├── ic_launcher_test_round.png
+│   │   │   │   │   ├── ic_launcher_test.png
+│   │   │   │   │   ├── ic_launcher.webp
+│   │   │   │   │   └── ic_sp_logo_1.png
+│   │   │   │   ├── mipmap-xxxhdpi
+│   │   │   │   │   ├── ic_launcher_round.webp
+│   │   │   │   │   ├── ic_launcher_test_foreground.webp
+│   │   │   │   │   ├── ic_launcher_test_round.png
+│   │   │   │   │   ├── ic_launcher_test.png
+│   │   │   │   │   ├── ic_launcher.webp
+│   │   │   │   │   └── ic_sp_logo_1.png
+│   │   │   │   ├── values
+│   │   │   │   │   ├── colors.xml
+│   │   │   │   │   ├── dimens.xml
+│   │   │   │   │   ├── strings.xml
+│   │   │   │   │   └── themes.xml
+│   │   │   │   └── xml
+│   │   │   │       ├── backup_rules.xml
+│   │   │   │       └── data_extraction_rules.xml
+│   │   │   └── AndroidManifest.xml
+│   │   └── test
+│   │       └── java
+│   │           └── com
+│   │               └── gawasu
+│   │                   └── sillyn
+│   │                       └── ExampleUnitTest.kt
+│   ├── .gitignore
+│   ├── build.gradle.kts
+│   ├── google-services.json
+│   ├── proguard-rules.pro
+├── gradle
+│   ├── wrapper
+│   │   ├── gradle-wrapper.jar
+│   │   └── gradle-wrapper.properties
+│   └── libs.versions.toml
+├── .gitattributes
+├── .gitignore
+├── build.gradle.kts
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── Lay_cay_thu_muc.ps1
+├── LICENSE
+├── local.properties
+├── output.txt
+├── settings.gradle.kts

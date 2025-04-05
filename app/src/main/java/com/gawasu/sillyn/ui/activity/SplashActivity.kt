@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import com.gawasu.sillyn.databinding.ActivitySplashBinding
 import com.gawasu.sillyn.ui.viewmodel.AppStateManager
 import com.gawasu.sillyn.ui.viewmodel.SplashViewModel
+import com.google.android.gms.auth.api.Auth
 import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
@@ -39,15 +40,16 @@ class SplashActivity : AppCompatActivity() {
                     target?.let {
                         val intent = when (it) {
                             SplashViewModel.NavigationTarget.LOGIN -> {
-                                Intent(this@SplashActivity, LoginActivity::class.java)
+                                Intent(this@SplashActivity, AuthenticationActivity::class.java)
                             }
                             SplashViewModel.NavigationTarget.MAIN -> {
                                 Intent(this@SplashActivity, MainActivity::class.java)
                             }
 
-                            SplashViewModel.NavigationTarget.ONBOARDING -> {
-                                Intent(this@SplashActivity, MainActivity::class.java)
-                            }
+//                            SplashViewModel.NavigationTarget.ONBOARDING -> {
+//                                Intent(this@SplashActivity, MainActivity::class.java)
+//                            }
+                            SplashViewModel.NavigationTarget.ONBOARDING -> TODO()
                         }
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)

@@ -17,4 +17,8 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowNoTitle">true</item> 
     </style>
+
+    <style name="Theme.Sillyn.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="Theme.Sillyn.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
