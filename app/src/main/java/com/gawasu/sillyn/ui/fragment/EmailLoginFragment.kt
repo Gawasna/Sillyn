@@ -1,30 +1,31 @@
-package com.gawasu.sillyn.ui.fragment
+package com.gawasu.sillyn.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.gawasu.sillyn.R
-import com.gawasu.sillyn.data.firebase.FirestoreAuthService
-import com.gawasu.sillyn.data.repository.AuthRepository
 import com.gawasu.sillyn.databinding.FragmentEmailLoginBinding
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
-import com.gawasu.sillyn.ui.viewmodel.AuthViewModelFactory
 import com.gawasu.sillyn.utils.FirebaseResult
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class EmailLoginFragment : Fragment() {
 
     private var _binding: FragmentEmailLoginBinding? = null
     private val binding get() = _binding!!
-    private lateinit var authViewModel: AuthViewModel
+    private val authViewModel: AuthViewModel by viewModels()
     private var isSignupMode: Boolean = false
 
     companion object {
         private const val ARG_IS_SIGNUP = "arg_is_signup"
-        fun newInstance(isSignup: Boolean = false) : EmailLoginFragment {
+        private const val TAG = "EMAIL LOGIN FRAGMENT"
+        fun newInstance(isSignup: Boolean = false): EmailLoginFragment {
             val fragment = EmailLoginFragment()
             val args = Bundle().apply {
                 putBoolean(ARG_IS_SIGNUP, isSignup)
@@ -52,11 +53,6 @@ class EmailLoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // Initialize ViewModel
-        val authRepository = AuthRepository(FirestoreAuthService())
-        val factory = AuthViewModelFactory(authRepository)
-        authViewModel = ViewModelProvider(requireActivity(), factory)[AuthViewModel::class.java] // Use requireActivity() to share ViewModel with Activity
 
         setupUI()
         setupClickListeners()
@@ -90,13 +86,15 @@ class EmailLoginFragment : Fragment() {
         authViewModel.loginResult.observe(viewLifecycleOwner) { result ->
             when (result) {
                 is FirebaseResult.Loading -> {
-                    // TODO: Show loading
+                    Log.d(TAG, "Login Loading...")
+                    // TODO: Show loading - ví dụ progress bar
                 }
                 is FirebaseResult.Success -> {
-                    // Login success - Activity will handle navigation to MainActivity
+                    Log.d(TAG, "Login Success, handled by Activity")
+                    // Login success - Activity observer sẽ navigate
                 }
                 is FirebaseResult.Error -> {
-                    // Login failed
+                    Log.e(TAG, "Login Failed", result.exception)
                     val errorMessage = result.exception.localizedMessage ?: getString(R.string.authentication_error, "Unknown error")
                     Toast.makeText(requireContext(), getString(R.string.login_failed, errorMessage), Toast.LENGTH_LONG).show()
                     // TODO: Hide loading
@@ -106,14 +104,16 @@ class EmailLoginFragment : Fragment() {
         authViewModel.signUpResult.observe(viewLifecycleOwner) { result ->
             when (result) {
                 is FirebaseResult.Loading -> {
+                    Log.d(TAG, "Signup Loading...")
                     // TODO: Show loading
                 }
                 is FirebaseResult.Success -> {
-                    Toast.makeText(requireContext(), "Signup Successful. Please Login", Toast.LENGTH_SHORT).show()
-                    parentFragmentManager.popBackStack() // Go back to login screen after signup
+                    Log.d(TAG, "Signup Success, returning to AuthenticationOptionsFragment")
+                    Toast.makeText(requireContext(), getString(R.string.signup_successful_login_please), Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack() // Quay lại AuthenticationOptionsFragment sau signup thành công
                 }
                 is FirebaseResult.Error -> {
-                    // Signup failed
+                    Log.e(TAG, "Signup Failed", result.exception)
                     val errorMessage = result.exception.localizedMessage ?: getString(R.string.authentication_error, "Unknown error")
                     Toast.makeText(requireContext(), getString(R.string.signup_failed, errorMessage), Toast.LENGTH_LONG).show()
                     // TODO: Hide loading

@@ -11,17 +11,7 @@
         android:title="Lịch" />
 
     <item
-        android:id="@+id/nav_projects"
-        android:icon="@drawable/sharp_border_all_24"
-        android:title="Dự Án" />
-
-    <item
-        android:id="@+id/nav_search"
-        android:icon="@drawable/rounded_circle_24"
-        android:title="Tìm Kiếm" />
-
-    <item
         android:id="@+id/nav_more"
         android:icon="@drawable/ic_add"
-        android:title="Thêm" />
+        android:title="Cài đặt" />
 </menu>

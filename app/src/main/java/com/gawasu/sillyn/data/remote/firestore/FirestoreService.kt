@@ -1,4 +1,4 @@
-package com.gawasu.sillyn.data.remote
+package com.gawasu.sillyn.data.remote.firestore
 
 import com.gawasu.sillyn.domain.model.Task
 import com.gawasu.sillyn.domain.model.User
@@ -10,6 +10,5 @@ interface FirestoreService {
     fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>>
     fun updateTask(userId: String, task: Task): Flow<FirebaseResult<Void>>
     fun deleteTask(userId: String, taskId: String): Flow<FirebaseResult<Void>>
-    // ... other Firestore operations
     fun getUser(userId: String): Flow<FirebaseResult<User>>
 }

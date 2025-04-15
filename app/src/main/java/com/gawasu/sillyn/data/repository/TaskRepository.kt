@@ -1,13 +1,7 @@
 package com.gawasu.sillyn.data.repository
 
-import com.gawasu.sillyn.domain.model.Task
-import com.gawasu.sillyn.utils.FirebaseResult
-import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-interface TaskRepository {
-    fun getTasks(userId: String): Flow<FirebaseResult<List<Task>>>
-    fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>>
-    fun updateTask(userId: String, task: Task): Flow<FirebaseResult<Void>>
-    fun deleteTask(userId: String, taskId: String): Flow<FirebaseResult<Void>>
-    // ... other repository methods
-}
+class TaskRepository @Inject constructor(
+    taskRepositoryImpl: TaskRepositoryImpl
+) : TaskRepositoryInterface by taskRepositoryImpl

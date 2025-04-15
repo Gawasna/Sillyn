@@ -2,6 +2,7 @@ package com.gawasu.sillyn.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.widget.Button
 import android.widget.ImageView
@@ -17,7 +18,9 @@ import com.gawasu.sillyn.databinding.ActivityMainBinding
 import com.gawasu.sillyn.ui.fragment.TaskFragment
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -30,44 +33,45 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.appBarMain.toolbar) // Đảm bảo bạn có Toolbar trong app_bar_main.xml
+        setSupportActionBar(binding.appBarMain.toolbar)
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_tasks, R.id.nav_calendar, R.id.nav_categories, R.id.nav_settings // Add your menu item IDs
+                R.id.nav_tasks, R.id.nav_calendar, R.id.nav_categories, R.id.nav_settings
             ), drawerLayout
         )
 
-        // Set up ActionBarDrawerToggle to handle navigation drawer icon and open/close
         val toggle = ActionBarDrawerToggle(
             this, drawerLayout, binding.appBarMain.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
         )
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
         setupNavHeader()
         setupLogoutButton()
-        setupMenuItems() // Optional: Handle menu item clicks
+        setupMenuItems()
 
-        // Hiển thị thông tin user nếu đã đăng nhập
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            // Nếu đã đăng nhập, bạn có thể sử dụng thông tin người dùng
-        } else {
-            // Nếu chưa đăng nhập, chuyển hướng đến màn hình đăng nhập
-            navigateToAuthenticationActivity()
-        }
+        checkLoginStatus() // Kiểm tra trạng thái đăng nhập ngay khi MainActivity được tạo
 
-        // Load TaskFragment into fragment_container
+        // Load TaskFragment into fragment_container - Đảm bảo Fragment chính được load
         if (savedInstanceState == null) {
             loadFragment(TaskFragment())
+        }
+    }
+
+    private fun checkLoginStatus() {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            // Nếu chưa đăng nhập, chuyển hướng đến màn hình đăng nhập
+            Log.i(TAG, "User not logged in in MainActivity, navigating to AuthenticationActivity")
+            navigateToAuthenticationActivity()
+        } else {
+            Log.i(TAG, "User logged in, loading MainActivity content")
+            // Nếu đã đăng nhập, tiếp tục hiển thị MainActivity
         }
     }
 
@@ -81,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         val headerView = binding.navView.getHeaderView(0)
         val userNameTextView: TextView = headerView.findViewById(R.id.tvUserName)
         val userEmailTextView: TextView = headerView.findViewById(R.id.tvUserEmail)
-        val userAvatarImageView: ImageView = headerView.findViewById(R.id.imageView) // Thêm ImageView
+        val userAvatarImageView: ImageView = headerView.findViewById(R.id.imageView)
 
         val currentUser = auth.currentUser
         if (currentUser != null) {
@@ -110,6 +114,7 @@ class MainActivity : AppCompatActivity() {
         val logoutButton: Button = headerView.findViewById(R.id.btnLogout)
         logoutButton.setOnClickListener {
             auth.signOut()
+            Log.i(TAG, "Logout successful, navigating to AuthenticationActivity")
             navigateToAuthenticationActivity()
         }
     }
@@ -153,5 +158,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return true
+    }
+
+    companion object {
+        private const val TAG = "MAIN ACTIVITY"
     }
 }

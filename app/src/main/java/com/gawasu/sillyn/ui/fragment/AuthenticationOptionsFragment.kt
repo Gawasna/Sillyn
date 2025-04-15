@@ -11,13 +11,11 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.gawasu.sillyn.R
 import com.gawasu.sillyn.databinding.FragmentAuthenticationOptionsBinding
+import com.gawasu.sillyn.ui.auth.EmailLoginFragment
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
-import com.gawasu.sillyn.ui.viewmodel.AuthViewModelFactory
-import com.gawasu.sillyn.data.repository.AuthRepository
-import com.gawasu.sillyn.data.firebase.FirestoreAuthService
 import com.gawasu.sillyn.utils.FirebaseResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -25,12 +23,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
+import dagger.hilt.android.AndroidEntryPoint
+import androidx.fragment.app.activityViewModels
 
+@AndroidEntryPoint
 class AuthenticationOptionsFragment : Fragment() {
 
     private var _binding: FragmentAuthenticationOptionsBinding? = null
     private val binding get() = _binding!!
-    private lateinit var authViewModel: AuthViewModel
+    private val authViewModel: AuthViewModel by activityViewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
 
@@ -49,18 +50,12 @@ class AuthenticationOptionsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize ViewModel
-        val authRepository = AuthRepository(FirestoreAuthService())
-        val factory = AuthViewModelFactory(authRepository)
-        authViewModel = ViewModelProvider(requireActivity(), factory)[AuthViewModel::class.java]
-
         setupGoogleSignIn()
         setupClickListeners()
-        observeViewModel()
+        // Removed observeViewModel() from Fragment
     }
 
     private fun setupGoogleSignIn() {
-        // Configure Google Sign In options to request the ID token
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -68,7 +63,6 @@ class AuthenticationOptionsFragment : Fragment() {
 
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
 
-        // Initialize ActivityResultLauncher for Google Sign-in
         googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 val intent = result.data
@@ -98,28 +92,8 @@ class AuthenticationOptionsFragment : Fragment() {
         }
     }
 
-    private fun observeViewModel() {
-        authViewModel.loginResult.observe(viewLifecycleOwner) { result ->
-            when (result) {
-                is FirebaseResult.Loading -> {
-                    // TODO: Show loading indicator
-                    Log.d(TAG, "Loading...")
-                }
-                is FirebaseResult.Success -> {
-                    // Login successful
-                    Log.d(TAG, "Login Success: ${result.data}")
-                    // Navigation to MainActivity is handled in AuthenticationActivity
-                }
-                is FirebaseResult.Error -> {
-                    // Login failed
-                    val errorMessage = result.exception.localizedMessage ?: getString(R.string.authentication_error, "Unknown error")
-                    Toast.makeText(requireContext(), getString(R.string.login_failed, errorMessage), Toast.LENGTH_LONG).show()
-                    Log.e(TAG, "Login Error: $errorMessage", result.exception)
-                    // TODO: Hide loading indicator
-                }
-            }
-        }
-    }
+    // Removed observeViewModel() from Fragment - Activity will handle navigation based on loginResult
+    // Fragment just triggers the sign-in
 
     private fun signInWithGoogle() {
         val signInIntent = googleSignInClient.signInIntent
@@ -131,14 +105,12 @@ class AuthenticationOptionsFragment : Fragment() {
         try {
             val account: GoogleSignInAccount = completedTask.getResult(ApiException::class.java)
             account?.idToken?.let { idToken ->
-                // Send ID Token to Firebase via ViewModel
-                authViewModel.signInWithGoogle(idToken)
+                authViewModel.signInWithGoogle(idToken) // Fragment triggers Google Sign-in in ViewModel
             } ?: run {
                 Toast.makeText(requireContext(), "Google Sign-in failed: Account ID Token is null", Toast.LENGTH_LONG).show()
                 Log.e(TAG, "Google Sign-in failed: Account ID Token is null")
             }
         } catch (e: ApiException) {
-            // The ApiException status code indicates the Google Sign-in service error.
             Toast.makeText(requireContext(), "Google Sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
             Log.e(TAG, "Google Sign-in failed", e)
         }
@@ -152,7 +124,7 @@ class AuthenticationOptionsFragment : Fragment() {
 
 
     private fun showForgotPasswordFragment() {
-        replaceFragment(ForgotPasswordFragment())
+        Toast.makeText(requireContext(), "Forgot Password Fragment is not implemented yet", Toast.LENGTH_SHORT).show()
     }
 
 

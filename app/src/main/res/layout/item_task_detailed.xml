@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cardViewTaskDetailed"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <View
+            android:id="@+id/viewPriorityIndicatorDetailed"
+            android:layout_width="8dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="0dp"
+            android:background="@color/priority_none"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <CheckBox
+            android:id="@+id/checkBoxTaskDetailed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@+id/viewPriorityIndicatorDetailed"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textViewTaskNameDetailed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            tools:text="Task Name Example"
+            app:layout_constraintEnd_toStartOf="@+id/textViewCategoryDetailed"
+            app:layout_constraintStart_toEndOf="@+id/checkBoxTaskDetailed"
+            app:layout_constraintTop_toTopOf="@+id/checkBoxTaskDetailed" />
+
+        <TextView
+            android:id="@+id/textViewCategoryDetailed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            android:textColor="@color/priority_medium"
+        tools:text="Category"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/textViewTaskNameDetailed" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupTagsDetailed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/viewPriorityIndicatorDetailed"
+            app:layout_constraintTop_toBottomOf="@+id/textViewTaskNameDetailed"
+            app:singleLine="false">
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <TextView
+            android:id="@+id/textViewDateTimeDetailed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="Due Date: Today, 10:00 AM"
+            app:layout_constraintStart_toEndOf="@+id/viewPriorityIndicatorDetailed"
+            app:layout_constraintTop_toBottomOf="@+id/chipGroupTagsDetailed" />
+
+        <TextView
+            android:id="@+id/textViewReminderTypeDetailed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Small"
+            tools:text="Reminder: On time"
+            app:layout_constraintStart_toEndOf="@+id/textViewDateTimeDetailed"
+            app:layout_constraintTop_toBottomOf="@+id/chipGroupTagsDetailed" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>

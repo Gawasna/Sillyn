@@ -47,4 +47,12 @@
     <string name="menu_others">Others</string>
     <string name="menu_share">Share</string>
     <string name="menu_rate_us">Rate Us</string>
+    <string name="mark_task_completed">Mark task as completed</string>
+    <string name="no_tasks_available">Không có nhiệm vụ nào</string>
+    <string name="detail_enable">Ẩn/Hiện chi tiết</string>
+    <string name="nav_tasks_title">Nhiệm Vụ</string>
+    <string name="nav_calendar_title">Lịchg</string>
+    <string name="nav_categories_title">Danh Mục</string>
+    <string name="nav_settings_title">Cài đặt</string>
+    <string name="signup_successful_login_please">Đăng ký thành công, vui lòng đăng nhập</string>
 </resources>

@@ -12,7 +12,7 @@ import com.gawasu.sillyn.data.firebase.FirestoreAuthService
 import com.gawasu.sillyn.data.repository.AuthRepository
 import com.gawasu.sillyn.databinding.FragmentForgotPasswordBinding
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
-import com.gawasu.sillyn.ui.viewmodel.AuthViewModelFactory
+//import com.gawasu.sillyn.ui.viewmodel.AuthViewModelFactory
 import com.gawasu.sillyn.utils.FirebaseResult
 
 class ForgotPasswordFragment : Fragment() {
@@ -33,9 +33,9 @@ class ForgotPasswordFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialize ViewModel
-        val authRepository = AuthRepository(FirestoreAuthService())
-        val factory = AuthViewModelFactory(authRepository)
-        authViewModel = ViewModelProvider(requireActivity(), factory)[AuthViewModel::class.java]
+//        val authRepository = AuthRepository(FirestoreAuthService())
+//        val factory = AuthViewModelFactory(authRepository)
+        //authViewModel = ViewModelProvider(requireActivity(), factory)[AuthViewModel::class.java]
 
         setupClickListeners()
         observeViewModel()

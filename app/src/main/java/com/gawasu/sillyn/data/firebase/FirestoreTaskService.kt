@@ -3,6 +3,7 @@ package com.gawasu.sillyn.data.firebase
 import android.util.Log
 import com.gawasu.sillyn.domain.model.Task
 import com.gawasu.sillyn.utils.FirebaseResult
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.lang.Exception
@@ -16,6 +17,37 @@ class FirestoreTaskService {
         private const val USERS_COLLECTION = "users"
         private const val TASKS_SUB_COLLECTION = "tasks"
         private const val TAG = "Task Service"
+    }
+
+    suspend fun createSampleTaskForUser(userId: String) {
+        try {
+            val taskData = hashMapOf(
+                "id" to firestore.collection("user").document(userId)
+                    .collection("tasks").document().id,
+                "title" to "Sample Task",
+                "description" to "",
+                "status" to "pending",
+                "type" to "task",
+                "repeatMode" to "none",
+                "reminderType" to "onTime",
+                "priority" to "3",
+                "tags" to listOf<String>(),
+                "category" to "general",
+                "createAt" to Timestamp.now(),
+                "updateAt" to Timestamp.now()
+                // Bạn có thể thêm "dueDate" sau nếu muốn
+            )
+
+            val taskRef = firestore.collection("user")
+                .document(userId)
+                .collection("Tasks")
+                .document(taskData["id"] as String)
+
+            taskRef.set(taskData).await()
+            Log.i(TAG, "SAMPLE TASK: Created successfully for user $userId")
+        } catch (e: Exception) {
+            Log.e(TAG, "SAMPLE TASK: Error creating sample task - ${e.message}", e)
+        }
     }
 
     // Function to get the Tasks sub-collection reference for a given userId

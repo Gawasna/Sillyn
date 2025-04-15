@@ -47,6 +47,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.fragment.ktx)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
@@ -63,7 +65,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
-    implementation(libs.play.services.location)
+    //implementation(libs.play.services.location)
     implementation(libs.play.services.auth)
     implementation(libs.google.material)
     implementation(libs.kotlinx.coroutines.play.services)

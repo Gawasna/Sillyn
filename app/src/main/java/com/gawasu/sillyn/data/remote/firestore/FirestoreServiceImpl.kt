@@ -1,4 +1,4 @@
-package com.gawasu.sillyn.data.remote
+package com.gawasu.sillyn.data.remote.firestore
 
 import com.gawasu.sillyn.domain.model.Task
 import com.gawasu.sillyn.domain.model.User
@@ -15,7 +15,7 @@ class FirestoreServiceImpl @Inject constructor(
 ) : FirestoreService {
 
     override fun getTasks(userId: String): Flow<FirebaseResult<List<Task>>> = callbackFlow {
-        val collectionRef = firestore.collection("USERS").document(userId).collection("TASKS")
+        val collectionRef = firestore.collection("user").document(userId).collection("tasks")
         val snapshotListener = collectionRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 trySend(FirebaseResult.Error(error))
@@ -40,7 +40,7 @@ class FirestoreServiceImpl @Inject constructor(
 
     override fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>> = callbackFlow {
         try {
-            val taskDocument = firestore.collection("USERS").document(userId).collection("TASKS").document()
+            val taskDocument = firestore.collection("user").document(userId).collection("tasks").document()
             task.id = taskDocument.id // Assign document ID to task ID
             taskDocument.set(task).await()
             FirebaseResult.Success(null)
@@ -53,7 +53,7 @@ class FirestoreServiceImpl @Inject constructor(
 
     override fun updateTask(userId: String, task: Task): Flow<FirebaseResult<Void>> = callbackFlow {
         try {
-            firestore.collection("USERS").document(userId).collection("TASKS").document(task.id ?: "").set(task).await()
+            firestore.collection("user").document(userId).collection("tasks").document(task.id ?: "").set(task).await()
             FirebaseResult.Success(null)
         } catch (e: Exception) {
             trySend(FirebaseResult.Error(e))
@@ -63,7 +63,7 @@ class FirestoreServiceImpl @Inject constructor(
 
     override fun deleteTask(userId: String, taskId: String): Flow<FirebaseResult<Void>> = callbackFlow {
         try {
-            firestore.collection("USERS").document(userId).collection("TASKS").document(taskId).delete().await()
+            firestore.collection("user").document(userId).collection("tasks").document(taskId).delete().await()
             FirebaseResult.Success(null)
         } catch (e: Exception) {
             trySend(FirebaseResult.Error(e))
@@ -72,7 +72,7 @@ class FirestoreServiceImpl @Inject constructor(
     }
 
     override fun getUser(userId: String): Flow<FirebaseResult<User>>  = callbackFlow {
-        val documentRef = firestore.collection("USERS").document(userId)
+        val documentRef = firestore.collection("user").document(userId)
         val snapshotListener = documentRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 trySend(FirebaseResult.Error(error))

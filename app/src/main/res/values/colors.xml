@@ -8,4 +8,11 @@
     <color name="white">#FFFFFFFF</color>
     <color name="cream_1">#FFE4D2</color>
     <color name="gray">#808080</color>
+
+    <color name="secondary_text_color">#757575</color>
+
+    <color name="priority_none">#E0E0E0</color>
+    <color name="priority_low">#81C784</color>
+    <color name="priority_medium">#FFB74D</color>
+    <color name="priority_high">#E57373</color>
 </resources>

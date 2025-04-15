@@ -1,7 +1,10 @@
 package com.gawasu.sillyn.ui.activity
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
@@ -20,13 +23,18 @@ class SplashActivity : AppCompatActivity() {
         SplashViewModelFactory(application, AppStateManager.getInstance(applicationContext)) // Provide AppStateManager instance
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val progressBar = binding.splashProgressBar
+
+        // Kiểm tra kết nối Internet
+        if (!isNetworkAvailable()) {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+            return // Dừng lại nếu không có kết nối internet
+        }
 
         lifecycleScope.launch {
             launch {
@@ -45,10 +53,6 @@ class SplashActivity : AppCompatActivity() {
                             SplashViewModel.NavigationTarget.MAIN -> {
                                 Intent(this@SplashActivity, MainActivity::class.java)
                             }
-
-//                            SplashViewModel.NavigationTarget.ONBOARDING -> {
-//                                Intent(this@SplashActivity, MainActivity::class.java)
-//                            }
                             SplashViewModel.NavigationTarget.ONBOARDING -> TODO()
                         }
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -58,6 +62,13 @@ class SplashActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    // Kiểm tra kết nối mạng
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
     }
 }
 
