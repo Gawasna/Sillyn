@@ -31,14 +31,14 @@ class SplashViewModel(
             Log.d(TAG, "Starting splash sequence")
 
             // Phase 1: Animate progress while loading app state
-            animateProgress(0, 70, 1000)
+            animateProgress(0, 70, 700)
 
             // Phase 2: Determine where to navigate based on app state
             val currentState = appStateManager.currentState.value
             Log.d(TAG, "Current app state: $currentState")
 
             // Complete the progress animation
-            animateProgress(70, 100, 300)
+            animateProgress(70, 100, 100)
 
             // Determine navigation target based on app state
             _navigationTarget.value = when (currentState) {

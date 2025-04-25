@@ -37,6 +37,33 @@ class FirestoreServiceImpl @Inject constructor(
         }
     }
 
+    override fun getTaskCategories(userId: String): Flow<FirebaseResult<List<String>>> = callbackFlow {
+        val collectionRef = firestore.collection("user").document(userId).collection("tasks")
+
+        val snapshotListener = collectionRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                trySend(FirebaseResult.Error(error))
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null) {
+                val categories = mutableSetOf<String>() // Use Set to store unique categories
+                for (document in snapshot.documents) {
+                    val category = document.getString("category")
+                    if (!category.isNullOrBlank()) { // Chỉ lấy category không null và không rỗng
+                        categories.add(category)
+                    }
+                }
+                trySend(FirebaseResult.Success(categories.toList())) // Convert Set to List for emission
+            } else {
+                trySend(FirebaseResult.Error(Exception("No tasks data found to extract categories")))
+            }
+        }
+
+        awaitClose {
+            snapshotListener.remove()
+        }
+    }
 
     override fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>> = callbackFlow {
         try {

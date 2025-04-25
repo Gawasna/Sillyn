@@ -9,4 +9,5 @@
     <dimen name="item_task_checkbox_margin_end">16dp</dimen>
     <dimen name="item_task_priority_indicator_margin_start">16dp</dimen>
     <dimen name="item_task_priority_indicator_size">16dp</dimen>
+    <dimen name="min_nav_padding">8dp</dimen>
 </resources>

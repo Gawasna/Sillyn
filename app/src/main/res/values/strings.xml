@@ -40,9 +40,8 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
     <string name="logout">Đăng xuất</string>
-    <string name="menu_tasks">Tasks</string>
-    <string name="menu_calendar">Calendar</string>
-    <string name="menu_categories">Categories</string>
+    <string name="menu_tasks">Nhiệm vụ</string>
+    <string name="menu_calendar">Ghi Chú</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_others">Others</string>
     <string name="menu_share">Share</string>
@@ -55,4 +54,9 @@
     <string name="nav_categories_title">Danh Mục</string>
     <string name="nav_settings_title">Cài đặt</string>
     <string name="signup_successful_login_please">Đăng ký thành công, vui lòng đăng nhập</string>
+    <string name="menu_categories">Categories</string>
+    <string name="no_categories_yet">No categories yet</string>
+    <string name="inbox_task">Hộp thư đến</string>
+    <string name="today">Hôm nay</string>
+    <string name="week_icm">7 ngày tới</string>
 </resources>

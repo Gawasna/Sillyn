@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface FirestoreService {
     fun getTasks(userId: String): Flow<FirebaseResult<List<Task>>>
+    fun getTaskCategories(userId: String): Flow<FirebaseResult<List<String>>>
     fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>>
     fun updateTask(userId: String, task: Task): Flow<FirebaseResult<Void>>
     fun deleteTask(userId: String, taskId: String): Flow<FirebaseResult<Void>>

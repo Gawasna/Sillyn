@@ -31,10 +31,10 @@ class SplashActivity : AppCompatActivity() {
         val progressBar = binding.splashProgressBar
 
         // Kiểm tra kết nối Internet
-        if (!isNetworkAvailable()) {
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
-            return // Dừng lại nếu không có kết nối internet
-        }
+//        if (!isNetworkAvailable()) {
+//            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+//            return // Dừng lại nếu không có kết nối internet
+//        }
 
         lifecycleScope.launch {
             launch {

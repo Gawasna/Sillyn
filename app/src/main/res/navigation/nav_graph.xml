@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/taskFragment">
+
+    <!-- Task Fragment - Destination for tasks -->
+    <fragment
+        android:id="@+id/taskFragment"
+        android:name="com.gawasu.sillyn.ui.fragment.TaskFragment"
+        android:label="Nhiệm vụ"
+        tools:layout="@layout/fragment_task_list">
+
+    <!-- Arguments để TaskFragment nhận biết cần hiển thị loại task nào -->
+    <argument
+        android:name="filterType"
+        app:argType="string"
+        android:nullable="true"
+        android:defaultValue="inbox" /> <!-- Giá trị mặc định: Hộp thư đến -->
+    <argument
+        android:name="categoryId"
+        app:argType="string"
+        android:nullable="true" /> <!-- Category ID cho task theo danh mục -->
+
+</fragment>
+
+    <!-- Calendar Fragment (Ví dụ) -->
+        <fragment
+        android:id="@+id/calendarFragment"
+        android:name="com.gawasu.sillyn.ui.fragment.CalendarFragment"
+        android:label="Lịch"
+        tools:layout="@layout/fragment_calendar" />
+
+    <!-- Settings Fragment (Ví dụ) -->
+        <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.gawasu.sillyn.ui.fragment.SettingFragment"
+        android:label="Cài đặt"
+        tools:layout="@layout/fragment_setting" />
+
+    <!-- Define actions between destinations if needed (e.g., TaskFragment to TaskDetailFragment) -->
+    <!-- <action
+        android:id="@+id/action_taskFragment_to_taskDetailFragment"
+        app:destination="@id/taskDetailFragment" /> -->
+
+    </navigation>

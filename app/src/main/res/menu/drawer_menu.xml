@@ -5,34 +5,25 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_tasks"
-            android:icon="@android:drawable/stat_notify_chat"
-            android:title="@string/menu_tasks" />
+            android:id="@+id/nav_inbox_tasks"
+            android:icon="@drawable/inbox_minus_round_1545_svgrepo_com"
+            android:title="@string/inbox_task" />
+
         <item
-            android:id="@+id/nav_calendar"
-            android:icon="@drawable/baseline_calendar_today_24"
-        android:title="@string/menu_calendar" />
+            android:id="@+id/nav_today_tasks"
+            android:icon="@drawable/task_svgrepo_com"
+            android:title="@string/today" />
+
         <item
-            android:id="@+id/nav_categories"
-            android:icon="@android:drawable/ic_menu_gallery"
-            android:title="@string/menu_categories" />
-        <item
-            android:id="@+id/nav_settings"
-            android:icon="@android:drawable/ic_menu_manage"
-            android:title="@string/menu_settings" />
+            android:id="@+id/nav_week_task"
+            android:icon="@drawable/calendar_day_svgrepo_com"
+            android:title="@string/week_icm" />
     </group>
 
-    <item android:title="@string/menu_others">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@android:drawable/ic_menu_set_as"
-                android:title="@string/menu_share" />
-            <item
-                android:id="@+id/nav_rate_us"
-                android:icon="@android:drawable/btn_star"
-                android:title="@string/menu_rate_us" />
-        </menu>
-    </item>
+    <group
+        android:id="@+id/menu_categories_group"
+        android:checkableBehavior="single"
+        android:title="@string/menu_categories">
+    </group>
 
-</menu>
+    </menu>

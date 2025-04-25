@@ -31,7 +31,7 @@ class AuthenticationActivity : AppCompatActivity() {
         // Load AuthenticationOptionsFragment as the initial fragment
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, AuthenticationOptionsFragment())
+                .replace(R.id.fragment_container_authentication, AuthenticationOptionsFragment())
                 .commit()
         }
         Log.d(TAG, "onCreate: AuthenticationActivity onCreate called") // Log onCreate

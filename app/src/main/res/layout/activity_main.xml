@@ -9,45 +9,58 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.activity.MainActivity">
 
+    <!-- Main content area -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
+        <!-- Include App Bar -->
         <include
             android:id="@+id/app_bar_main"
             layout="@layout/app_bar_main"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content" /> <!-- Chiều cao là wrap_content -->
 
-        <FrameLayout
-            android:id="@+id/fragment_container"
+        <!-- Layout để chứa Fragment Container và Bottom Nav, đặt dưới AppBar -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            android:orientation="vertical"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"> <!-- Đảm bảo LinearLayout bắt đầu dưới AppBar -->
 
+            <!-- Fragment Container - Chiếm hết không gian còn lại -->
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+            <!-- Bottom Navigation Bar -->
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottom_navigation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+            android:background="?android:attr/windowBackground"
+            app:menu="@menu/bottom_nav_menu" />
+
+        </LinearLayout>
+
+        <!-- Xóa FAB ở cấp Activity nếu Fragment đã có FAB riêng -->
+        <!--
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/fab_margin"
-            android:visibility="gone"
+            android:visibility="visible"
             app:srcCompat="@drawable/ic_add"
             android:contentDescription="@string/add_task" />
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottom_navigation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="?android:attr/windowBackground"
-            app:layout_anchor="@+id/fragment_container"
-            app:layout_anchorGravity="bottom"
-            app:menu="@menu/bottom_nav_menu" />
+        -->
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
+    <!-- Navigation Drawer View -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
         android:layout_width="wrap_content"

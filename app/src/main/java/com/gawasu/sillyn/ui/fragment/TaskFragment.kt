@@ -92,6 +92,7 @@ class TaskFragment : Fragment(), TaskAdapter.OnItemClickListener {
     }
 
     private fun setupFabAddTask() {
+        Log.d(TAG, "fabAddTask reference: ${binding.fabAddTask}")
         binding.fabAddTask.setOnClickListener {
             // TODO: Mở dialog hoặc fragment để thêm task mới
             showAddTaskDialog()
