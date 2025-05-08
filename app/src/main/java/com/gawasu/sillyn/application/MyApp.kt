@@ -3,12 +3,18 @@ package com.gawasu.sillyn.application
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 import android.util.Log
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import javax.inject.Inject
 
 @HiltAndroidApp
-class SillynApplication : Application() {
+class SillynApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     override fun onCreate() {
         super.onCreate()
@@ -21,8 +27,15 @@ class SillynApplication : Application() {
             .build()
         FirebaseFirestore.getInstance().firestoreSettings = settings
         Log.i(TAG, "Firestore persistence enabled: ${settings.isPersistenceEnabled}")
-        Log.i(TAG, "Firestore cache size: $CACHE_SIZE_LIMIT bytes")
     }
+
+    // *** FIX: Thay thế fun getWorkManagerConfiguration() bằng val workManagerConfiguration ***
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory) // Use the injected HiltWorkerFactory
+            // .setMinimumLoggingLevel(android.util.Log.DEBUG) // Optional: Set log level for WorkManager
+            .build()
+
 
     companion object {
         private const val TAG = "SILLYN APPLICATION"

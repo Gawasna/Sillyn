@@ -1,62 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context=".ui.dialog.AddTaskDialogFragment">
 
-    <TextView
+    <EditText
+        android:id="@+id/edit_text_task_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Thêm Nhiệm Vụ"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:gravity="center"
-        android:layout_marginBottom="16dp"/>
+        android:autofillHints=""
+        android:hint="Bạn muốn làm gì"
+        android:inputType="textCapSentences|textMultiLine"
+        android:maxLines="3"
+        android:minLines="1"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+        android:textStyle="bold" />
 
-    <com.google.android.material.textfield.TextInputLayout
+    <EditText
+        android:id="@+id/edit_text_task_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tiêu đề">
+        android:layout_marginTop="8dp"
+        android:autofillHints=""
+        android:hint="Mô tả nhiệm vụ"
+        android:inputType="textCapSentences|textMultiLine"
+        android:maxLines="5"
+        android:minLines="1"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        tools:ignore="TouchTargetSizeCheck" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextTaskTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Mô tả">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextTaskDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textMultiLine"/>
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- TODO: Thêm các input khác cho priority, category, dueDate, ... -->
-
+    <!-- First row of action buttons -->
     <LinearLayout
+        android:id="@+id/button_row_1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="end"
+        android:gravity="center_vertical"
         android:layout_marginTop="16dp">
 
-        <Button
-            android:id="@+id/buttonCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hủy"
-            android:layout_marginEnd="8dp"/>
+        <!-- Priority Button (ImageButton showing flag) -->
+        <ImageButton
+            android:id="@+id/button_priority"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Chọn độ ưu tiên"
+            android:src="@drawable/flag_svgrepo_com_none" />
 
+        <!-- Category Button (Button showing text and dropdown icon) -->
         <Button
-            android:id="@+id/buttonAddTask"
-            android:layout_width="wrap_content"
+            android:id="@+id/button_category"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Thêm Nhiệm Vụ"/>
+            android:text="Danh mục"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:drawableEnd="@drawable/dropdown_arrow_svgrepo_com"
+            android:gravity="start|center_vertical" />
+
+        <!-- Due Date Button (Calendar icon) -->
+        <ImageButton
+            android:id="@+id/button_due_date"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Chọn ngày đến hạn"
+            android:src="@drawable/baseline_calendar_today_24" />
+
+        <!-- Add some padding/space -->
+        <Space android:layout_width="8dp" android:layout_height="0dp"/>
+
+
+    </LinearLayout>
+
+    <!-- Second row of action buttons -->
+    <LinearLayout
+        android:id="@+id/button_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"> <!-- Add margin top to separate rows -->
+
+        <!-- Due Time Button (Clock icon) -->
+        <ImageButton
+            android:id="@+id/button_due_time"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Chọn thời điểm"
+            android:src="@drawable/clock_svgrepo_com" />
+
+        <!-- Reminder Type Button (Alarm/Bell icon) -->
+        <ImageButton
+            android:id="@+id/button_reminder_type"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Loại nhắc nhở"
+            android:src="@drawable/bell_svgrepo_com" />
+
+        <!-- Optional: Repeat Button -->
+        <!--
+        <ImageButton
+           android:id="@+id/button_repeat"
+           android:layout_width="48dp"
+           android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+           android:contentDescription="Lặp lại"
+           android:src="@drawable/ic_repeat_24" />
+        -->
+
+
+        <!-- Add Task Button (Send/Plane icon), pushed to the end -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" /> <!-- Spacer -->
+
+        <ImageButton
+            android:id="@+id/button_add_task"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/add_task"
+            android:src="@drawable/send_alt_1_svgrepo_com"
+            app:tint="?attr/colorPrimary" />
+
     </LinearLayout>
 
 </LinearLayout>

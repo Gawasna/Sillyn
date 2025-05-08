@@ -38,6 +38,14 @@ class EditTaskDialogFragment : DialogFragment() {
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -51,7 +59,7 @@ class EditTaskDialogFragment : DialogFragment() {
             //TODO: Điền các trường khác vào dialog
         }
 
-        binding.buttonAddTask.text = "Cập Nhật Nhiệm Vụ" // Đổi text button
+        //binding.buttonAddTask.text = "Cập Nhật Nhiệm Vụ" // Đổi text button
         binding.buttonAddTask.setOnClickListener {
             val title = binding.editTextTaskTitle.text.toString()
             val description = binding.editTextTaskDescription.text.toString()
@@ -75,9 +83,9 @@ class EditTaskDialogFragment : DialogFragment() {
             }
         }
 
-        binding.buttonCancel.setOnClickListener {
-            dismiss()
-        }
+//        binding.buttonCancel.setOnClickListener {
+//            dismiss()
+//        }
     }
 
     override fun onDestroyView() {

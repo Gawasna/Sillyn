@@ -59,4 +59,90 @@
     <string name="inbox_task">Hộp thư đến</string>
     <string name="today">Hôm nay</string>
     <string name="week_icm">7 ngày tới</string>
+    <!-- Settings Activity Title -->
+    <string name="title_activity_settings">Cài đặt</string>
+
+    <!-- Preference Header - Notifications -->
+    <string name="pref_header_notifications">Cài đặt thông báo</string>
+    <string name="pref_title_enable_notifications">Bật thông báo</string>
+    <string name="pref_summary_notifications_on">Thông báo được bật</string>
+    <string name="pref_summary_notifications_off">Thông báo bị tắt</string>
+    <!-- Add other notification strings if you added those preferences -->
+    <!-- <string name="pref_title_ringtone">Nhạc chuông thông báo</string> -->
+    <!-- <string name="pref_title_vibrate">Rung</string> -->
+
+
+    <!-- Preference Header - AI/NLP -->
+    <string name="pref_header_ai_nlp">Cài đặt AI/NLP</string>
+    <string name="pref_title_enable_ai">Bật tính năng AI</string>
+    <string name="pref_summary_ai_on">Các tính năng AI/NLP được bật</string>
+    <string name="pref_summary_ai_off">Các tính năng AI/NLP bị tắt</string>
+    <!-- Add other AI/NLP strings/arrays -->
+
+
+    <!-- Preference Header - Permissions -->
+    <string name="pref_header_permissions">Quyền truy cập</string>
+    <string name="pref_title_notification_access">Cấp quyền đọc thông báo</string>
+    <string name="pref_summary_notification_access">Cho phép ứng dụng đọc thông báo để tạo task tự động (Yêu cầu Android 4.3+)</string>
+    <string name="pref_title_ringtone">Chuông thông báo</string>
+    <string name="pref_title_vibrate">Rung</string>
+    <string name="pref_title_ai_model">Mô hình AI</string>
+    <string name="pref_title_ai_api_key">Khóa API</string>
+    <string name="pref_summary_ai_api_key">Khóa API để sử dụng dịch vụ</string>
+    <!-- Calendar Fragment Title -->
+    <string name="title_activity_calendar">Lịch</string>
+
+    <!-- Calendar View Modes -->
+    <string name="calendar_view_mode_day">Ngày</string>
+    <string name="calendar_view_mode_week">Tuần</string>
+    <string name="calendar_view_mode_month">Tháng</string>
+
+    <!-- Date Navigation -->
+    <string name="previous_period">Trước</string>
+    <string name="next_period">Sau</string>
+    <string name="task_title_hint">Tiêu đề</string>
+    <string name="task_description_hint">Mô tả</string>
+    <string name="select_priority">Chọn độ ưu tiên</string>
+    <string name="select_category">Danh mục</string>
+    <string name="select_due_date">Chọn ngày hết hạn</string>
+    <string name="select_due_time">Chọn giờ hết hạn</string>
+    <string name="select_reminder_type">Chọn loại nhắc nhở</string>
+
+    <!-- Priority options -->
+    <string name="priority_none">Không</string>
+    <string name="priority_low">Thấp</string>
+    <string name="priority_medium">Trung bình</string>
+    <string name="priority_high">Cao</string>
+
+    <!-- Reminder Type options -->
+    <string name="reminder_ontime">Đúng giờ</string>
+    <string name="reminder_early_30m">Sớm 30\'</string>
+    <string name="reminder_early_1h">Sớm 1 tiếng</string>
+    <string name="reminder_early_3h">Sớm 3 tiếng</string>
+    <string name="reminder_early_1d">Sớm 1 ngày</string>
+    <string name="cancel">Hủy</string>
+    <string name="hint_new_category">Bạn muốn làm gì</string>
+    <string name="add_new_category">Thêm danh mục</string>
+    <string name="add">Thêm</string>
+    <string name="none">Không</string>
+    <string name="update_task">Cập nhật nhiệm vụ</string>
+    <string name="title_cannot_be_empty">Tiêu đề không được bỏ trống</string>
+    <string name="delete_task">Xóa nhiệm vụ</string>
+    <string name="are_you_sure_delete_task">Bạn có muốn xóa nhiệm vụ này không?</string>
+    <string name="delete">Xóa</string>
+    <string name="confirm_password_empty">Không được để trống</string>
+    <string name="passwords_do_not_match">Mật khẩu không khớp</string>
+    <string name="signup_with_email">Đăng ký với email</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="name">Tên</string>
+    <string name="time_diff_30m">30 phút nữa</string>
+    <string name="time_diff_1h">1 tiếng nữa</string>
+    <string name="time_diff_3h">3 tiếng nữa</string>
+    <string name="time_diff_1d">1 ngày nữa</string>
+    <string name="action_complete">Hoàn thành</string>
+    <string name="action_dismiss">Bỏ qua</string>
+    <string name="notification_title_early">Nhiệm vụ: %1$s sau %2$s nữa</string>
+    <string name="notification_title_ontime">Nhắc nhở: %1$s đến hạn</string>
+    <string name="notification_duedate">Đến hạn: %1$s </string>
+    <string name="notification_priority">Độ ưu tiên: %1$s</string>
 </resources>

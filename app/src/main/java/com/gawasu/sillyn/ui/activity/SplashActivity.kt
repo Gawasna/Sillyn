@@ -2,6 +2,7 @@ package com.gawasu.sillyn.ui.activity
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.widget.Toast
@@ -11,16 +12,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.gawasu.sillyn.databinding.ActivitySplashBinding
+import com.gawasu.sillyn.ui.fragment.IntroFragment
 import com.gawasu.sillyn.ui.viewmodel.AppStateManager
 import com.gawasu.sillyn.ui.viewmodel.SplashViewModel
-import com.google.android.gms.auth.api.Auth
 import kotlinx.coroutines.launch
 
 class SplashActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySplashBinding
 
+    private lateinit var prefs: SharedPreferences
+
     private val splashViewModel: SplashViewModel by viewModels {
-        SplashViewModelFactory(application, AppStateManager.getInstance(applicationContext)) // Provide AppStateManager instance
+        SplashViewModelFactory(application, AppStateManager.getInstance(applicationContext))
+    }
+
+    companion object {
+        private const val KEY_FIRST_LAUNCH = "is_first_launch"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,17 +36,25 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val progressBar = binding.splashProgressBar
+        val statusTextView = binding.tvLoadingText // Thêm dòng này để lấy TextView cập nhật status
 
-        // Kiểm tra kết nối Internet
+        // Nếu cần kiểm tra Internet thì mở đoạn này
 //        if (!isNetworkAvailable()) {
 //            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
-//            return // Dừng lại nếu không có kết nối internet
+//            return
 //        }
 
         lifecycleScope.launch {
+
             launch {
                 splashViewModel.progress.collect { progress ->
                     progressBar.progress = progress
+                }
+            }
+
+            launch {
+                splashViewModel.statusText.collect { text ->
+                    statusTextView.text = text
                 }
             }
 
@@ -53,7 +68,9 @@ class SplashActivity : AppCompatActivity() {
                             SplashViewModel.NavigationTarget.MAIN -> {
                                 Intent(this@SplashActivity, MainActivity::class.java)
                             }
-                            SplashViewModel.NavigationTarget.ONBOARDING -> TODO()
+                            SplashViewModel.NavigationTarget.ONBOARDING -> {
+                                Intent(this@SplashActivity, OnboardingActivity::class.java)
+                            }
                         }
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
@@ -64,14 +81,16 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
-    // Kiểm tra kết nối mạng
     private fun isNetworkAvailable(): Boolean {
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connectivityManager.activeNetworkInfo
         return networkInfo != null && networkInfo.isConnected
     }
-}
 
+    private fun isFirstLaunch(): Boolean {
+        return prefs.getBoolean(KEY_FIRST_LAUNCH, true)
+    }
+}
 
 class SplashViewModelFactory(
     private val application: android.app.Application,

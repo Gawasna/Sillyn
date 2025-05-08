@@ -1,5 +1,4 @@
 package com.gawasu.sillyn.ui.auth
-
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,10 +12,8 @@ import com.gawasu.sillyn.databinding.FragmentEmailLoginBinding
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
 import com.gawasu.sillyn.utils.FirebaseResult
 import dagger.hilt.android.AndroidEntryPoint
-
 @AndroidEntryPoint
 class EmailLoginFragment : Fragment() {
-
     private var _binding: FragmentEmailLoginBinding? = null
     private val binding get() = _binding!!
     private val authViewModel: AuthViewModel by viewModels()

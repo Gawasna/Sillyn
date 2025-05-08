@@ -1,5 +1,9 @@
 package com.gawasu.sillyn.di
 
+import android.app.AlarmManager
+import android.content.Context
+import com.gawasu.sillyn.data.local.SharedPreferencesUserIdProvider
+import com.gawasu.sillyn.data.local.UserIdProvider
 import com.gawasu.sillyn.data.remote.auth.AuthService
 import com.gawasu.sillyn.data.remote.auth.AuthServiceImpl
 import com.gawasu.sillyn.data.remote.firestore.FirestoreService
@@ -39,6 +43,12 @@ abstract class AppModule {
     @Singleton
     abstract fun bindFirestoreService(firestoreServiceImpl: FirestoreServiceImpl): FirestoreService
 
+    @Binds
+    @Singleton
+    abstract fun bindUserIdProvider(
+        sharedPreferencesUserIdProvider: SharedPreferencesUserIdProvider
+    ): UserIdProvider
+
     companion object {
         @Provides
         @Singleton
@@ -47,5 +57,11 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+        @Provides
+        @Singleton
+        fun provideAlarmManager(@dagger.hilt.android.qualifiers.ApplicationContext context: Context): AlarmManager {
+            return context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        }
     }
 }

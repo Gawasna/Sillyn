@@ -11,8 +11,18 @@ class FirestoreDataSource @Inject constructor(
 ) {
     fun getTasks(userId: String): Flow<FirebaseResult<List<Task>>> = firestoreService.getTasks(userId)
     fun getTaskCategories(userId: String): Flow<FirebaseResult<List<String>>> = firestoreService.getTaskCategories(userId)
-    fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>> = firestoreService.addTask(userId, task)
+
+    //fun addTask(userId: String, task: Task): Flow<FirebaseResult<Void>> = firestoreService.addTask(userId, task)
+    fun addTask(userId: String, task: Task): Flow<FirebaseResult<Task>> = firestoreService.addTask(userId, task)
+
     fun updateTask(userId: String, task: Task): Flow<FirebaseResult<Void>> = firestoreService.updateTask(userId, task)
     fun deleteTask(userId: String, taskId: String): Flow<FirebaseResult<Void>> = firestoreService.deleteTask(userId, taskId)
     fun getUser(userId: String): Flow<FirebaseResult<User>> = firestoreService.getUser(userId)
+
+    fun getTodayTasks(userId: String): Flow<FirebaseResult<List<Task>>> = firestoreService.getTodayTasks(userId)
+    fun getWeekTasks(userId: String): Flow<FirebaseResult<List<Task>>> = firestoreService.getWeekTasks(userId)
+    fun getTasksByCategory(userId: String, category: String): Flow<FirebaseResult<List<Task>>> = firestoreService.getTasksByCategory(userId, category)
+
+    fun getTaskById(userId: String, taskId: String): Flow<FirebaseResult<Task?>> = firestoreService.getTasksById(userId, taskId)
+    fun getUpcomingTasksWithDeadlines(userId: String): Flow<FirebaseResult<List<Task>>> = firestoreService.getUpcomingTasksWithDeadlines(userId)
 }

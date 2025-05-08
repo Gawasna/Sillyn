@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="ai_models_entries">
+        <item>Mô hình AI 1</item>
+        <item>Mô hình AI 2</item>
+        <item>Mô hình AI 3</item>
+        <item>Mô hình mặc định</item>
+    </string-array>
+
+    <!-- Các giá trị tương ứng với mỗi lựa chọn -->
+    <string-array name="ai_models_values">
+        <item>model_1</item>
+        <item>model_2</item>
+        <item>model_3</item>
+        <item>default</item>
+    </string-array>
+</resources>

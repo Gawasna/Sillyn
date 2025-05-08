@@ -78,7 +78,16 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.navigation.ui.ktx)
+    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation ("com.google.mlkit:entity-extraction:16.0.0-beta6")
+    //implementation("com.google.mlkit:language-id:17.0.4")
+    implementation(libs.android.week.view)
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
 
+    // Hilt integration for WorkManager
+    implementation(libs.androidx.hilt.work)
+    kapt(libs.androidx.hilt.work) // Use kapt for annotation processing
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gawasu.sillyn.data.local.UserIdProvider
 import com.gawasu.sillyn.data.repository.AuthRepository
 import com.gawasu.sillyn.utils.FirebaseResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userIdProvider: UserIdProvider
 ) : ViewModel() {
 
     private val TAG = "AuthViewModel"
@@ -25,6 +27,8 @@ class AuthViewModel @Inject constructor(
         loginResult.postValue(FirebaseResult.Loading)
         viewModelScope.launch {
             val result = authRepository.loginWithEmailPassword(email, password)
+            val userId = authRepository.getCurrentUser()?.uid
+            userIdProvider.setUserId(userId)
             Log.d(TAG, "loginWithEmailPassword result: $result") // Log result
             loginResult.postValue(result)
         }
@@ -45,7 +49,10 @@ class AuthViewModel @Inject constructor(
         loginResult.postValue(FirebaseResult.Loading)
         viewModelScope.launch {
             val result = authRepository.signInWithGoogle(idToken)
-            Log.d(TAG, "signInWithGoogle result: $result") // Log result
+            val userId = authRepository.getCurrentUser()?.uid
+            userIdProvider.setUserId(userId)
+            Log.d(TAG, "signInWithGoogle result: $result")
+            Log.d(TAG, "Save userId SUCCESS")
             loginResult.postValue(result)
         }
     }

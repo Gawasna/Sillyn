@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Preference Category: Notification Settings -->
+    <PreferenceCategory
+        android:title="@string/pref_header_notifications">
+
+        <!-- Switch Preference: Enable Notifications -->
+        <SwitchPreferenceCompat
+            android:key="enable_notifications"
+            android:title="@string/pref_title_enable_notifications"
+            android:defaultValue="true"
+            android:summaryOn="@string/pref_summary_notifications_on"
+            android:summaryOff="@string/pref_summary_notifications_off" />
+    <!--
+        <RingtonePreference
+            android:key="notifications_ringtone"
+            android:title="@string/pref_title_ringtone"
+            android:ringtoneType="notification"
+            android:defaultValue="content://settings/system/notification_sound" />
+    -->
+
+        <SwitchPreferenceCompat
+            android:key="vibrate"
+            android:title="@string/pref_title_vibrate"
+            android:defaultValue="true" />
+
+    </PreferenceCategory>
+
+    <!-- Preference Category: AI/NLP Settings -->
+    <PreferenceCategory
+        android:title="@string/pref_header_ai_nlp">
+
+        <!-- Switch Preference: Enable AI Features -->
+        <SwitchPreferenceCompat
+            android:key="enable_ai_features"
+            android:title="@string/pref_title_enable_ai"
+            android:defaultValue="false"
+            android:summaryOn="@string/pref_summary_ai_on"
+            android:summaryOff="@string/pref_summary_ai_off" />
+
+        <ListPreference
+            android:key="ai_language_model"
+            android:title="@string/pref_title_ai_model"
+            android:entries="@array/ai_models_entries"
+            android:entryValues="@array/ai_models_values"
+            android:defaultValue="default" />
+
+        <EditTextPreference
+            android:key="ai_api_key"
+            android:title="@string/pref_title_ai_api_key"
+            android:summary="@string/pref_summary_ai_api_key"
+            android:inputType="textPassword"
+
+             />
+
+    </PreferenceCategory>
+
+    <!-- Preference Category: Permissions -->
+    <PreferenceCategory
+        android:title="@string/pref_header_permissions">
+
+        <!-- Preference: Grant Notification Access (This is an action, not a saved preference) -->
+        <Preference
+            android:key="grant_notification_access"
+            android:title="@string/pref_title_notification_access"
+            android:summary="@string/pref_summary_notification_access" />
+
+    </PreferenceCategory>
+
+
+    <!-- Add other categories or preferences as needed -->
+
+</PreferenceScreen>

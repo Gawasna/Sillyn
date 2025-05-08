@@ -16,12 +16,12 @@
     <argument
         android:name="filterType"
         app:argType="string"
-        android:nullable="true"
         android:defaultValue="inbox" /> <!-- Giá trị mặc định: Hộp thư đến -->
     <argument
-        android:name="categoryId"
+        android:name="categoryName"
         app:argType="string"
-        android:nullable="true" /> <!-- Category ID cho task theo danh mục -->
+        app:nullable="true"
+        android:defaultValue="" /> <!-- Category ID cho task theo danh mục -->
 
 </fragment>
 
@@ -32,12 +32,12 @@
         android:label="Lịch"
         tools:layout="@layout/fragment_calendar" />
 
-    <!-- Settings Fragment (Ví dụ) -->
-        <fragment
+    <!-- Settings Fragment -->
+    <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.gawasu.sillyn.ui.fragment.SettingFragment"
-        android:label="Cài đặt"
-        tools:layout="@layout/fragment_setting" />
+        android:name="com.gawasu.sillyn.ui.fragment.SettingsFragment"
+        android:label="@string/title_activity_settings"
+        tools:layout="" />
 
     <!-- Define actions between destinations if needed (e.g., TaskFragment to TaskDetailFragment) -->
     <!-- <action

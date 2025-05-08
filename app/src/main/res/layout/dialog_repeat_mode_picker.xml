@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lặp lại"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lặp lại"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:id="@+id/text_repeat_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Không"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textStyle="bold"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" /> <!-- Spacer -->
+
+        <ImageButton
+            android:id="@+id/button_prev_repeat_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="trước"
+            android:src="@drawable/baseline_arrow_back_24"
+            tools:ignore="TouchTargetSizeCheck" />
+
+        <ImageButton
+            android:id="@+id/button_next_repeat_option"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="tiếp"
+            android:src="@drawable/baseline_arrow_back_24"
+            tools:ignore="TouchTargetSizeCheck" />
+
+
+    </LinearLayout>
+
+    <!-- Optional: Buttons for specific repeat modes -->
+    <!-- Using Material Buttons with checkableBehavior="single" for segmented effect -->
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggle_group_repeat_modes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_repeat_daily"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="Hàng ngày"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_repeat_weekly"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="Hàng tuần"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_repeat_yearly"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="Hàng năm"/>
+
+        <!-- "Days in week" mode might need a separate button or handled within the picker -->
+        <!-- If it's a mode, add a button: -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/button_repeat_days_in_week"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:text="Ngày trong tuần"/>
+
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- Optional: Layout for selecting specific days of the week -->
+    <LinearLayout
+        android:id="@+id/layout_days_of_week_picker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" tools:visibility="visible"> <!-- Initially hidden -->
+
+        <!-- Example using ToggleButtons for each day -->
+        <!-- You'll need to style these and handle selection logic -->
+        <ToggleButton
+            android:id="@+id/toggle_mon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="T2" android:textOff="T2" android:text="T2"
+            android:layout_margin="2dp"/>
+        <ToggleButton
+            android:id="@+id/toggle_tue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="T3" android:textOff="T3" android:text="T3"
+            android:layout_margin="2dp"/>
+        <ToggleButton
+            android:id="@+id/toggle_wed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="T4" android:textOff="T4" android:text="T4"
+            android:layout_margin="2dp"/>
+        <ToggleButton
+            android:id="@+id/toggle_thu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="T5" android:textOff="T5" android:text="T5"
+            android:layout_margin="2dp"/>
+
+        <ToggleButton
+            android:id="@+id/toggle_fri"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="2dp"
+            android:text="T6"
+            android:textOff="T6"
+            android:textOn="T6"
+            tools:ignore="TouchTargetSizeCheck" />
+        <ToggleButton
+            android:id="@+id/toggle_sat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="T7" android:textOff="T7" android:text="T7"
+            android:layout_margin="2dp"/>
+        <ToggleButton
+            android:id="@+id/toggle_sun"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="CN" android:textOff="CN" android:text="CN"
+            android:layout_margin="2dp"/>
+    </LinearLayout>
+
+    <!-- TODO: Add Save/Cancel buttons if needed -->
+
+</LinearLayout>

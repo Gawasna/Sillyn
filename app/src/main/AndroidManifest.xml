@@ -4,6 +4,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:ignore="ManifestResource" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" tools:ignore="ManifestResource" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:name=".application.SillynApplication"
@@ -40,6 +45,52 @@
             android:exported="false"
             android:theme="@style/Theme.Sillyn">
         </activity>
+
+        <activity
+            android:name=".ui.activity.OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Sillyn">
+        </activity>
+
+        <!-- Khai báo BroadcastReceiver -->
+        <receiver
+            android:name=".receiver.ReminderReceiver"
+            android:enabled="true"
+            android:exported="true"> <!-- export=true để nhận broadcast từ AlarmManager -->
+            <intent-filter>
+                <action android:name="com.gawasu.sillyn.ACTION_SHOW_REMINDER" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:enabled="true"
+            android:exported="true"> <!-- export=true để nhận broadcast từ hệ thống -->
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/> <!-- Khi app được cập nhật -->
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.NotificationActionReceiver"
+            android:enabled="true"
+            android:exported="true"> <!-- export=true để nhận broadcast từ notification actions -->
+            <intent-filter>
+                <action android:name="com.gawasu.sillyn.ACTION_COMPLETE_TASK"/>
+                <action android:name="com.gawasu.sillyn.ACTION_DISMISS_NOTIFICATION"/>
+                <!-- Add actions for SNOOZE, etc. -->
+            </intent-filter>
+        </receiver>
+
+
+        <!-- Xóa WorkManager default initializer vì đang dùng custom factory -->
+        <!-- <provider
+            android:name="androidx.work.impl.WorkManagerInitializer"
+            android:authorities="${applicationId}.workmanager-init"
+            android:exported="false"
+            tools:node="remove" />
+          -->
 
     </application>
 

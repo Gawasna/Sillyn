@@ -1,5 +1,4 @@
 package com.gawasu.sillyn.ui.fragment
-
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
@@ -25,10 +24,8 @@ import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.AndroidEntryPoint
 import androidx.fragment.app.activityViewModels
-
 @AndroidEntryPoint
 class AuthenticationOptionsFragment : Fragment() {
-
     private var _binding: FragmentAuthenticationOptionsBinding? = null
     private val binding get() = _binding!!
     private val authViewModel: AuthViewModel by activityViewModels()
@@ -92,8 +89,8 @@ class AuthenticationOptionsFragment : Fragment() {
         }
     }
 
-    // Removed observeViewModel() from Fragment - Activity will handle navigation based on loginResult
-    // Fragment just triggers the sign-in
+// Removed observeViewModel() from Fragment - Activity will handle navigation based on loginResult
+// Fragment just triggers the sign-in
 
     private fun signInWithGoogle() {
         val signInIntent = googleSignInClient.signInIntent
@@ -130,7 +127,7 @@ class AuthenticationOptionsFragment : Fragment() {
 
     private fun replaceFragment(fragment: Fragment) {
         val transaction = parentFragmentManager.beginTransaction()
-        transaction.replace(R.id.fragment_container, fragment)
+        transaction.replace(R.id.fragment_container_authentication, fragment)
         transaction.addToBackStack(null)
         transaction.commit()
     }

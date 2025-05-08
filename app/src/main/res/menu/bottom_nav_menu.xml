@@ -1,17 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item
-        android:id="@+id/nav_tasks"
-        android:icon="@drawable/baseline_check_box_outline_blank_24"
-        android:title="Nhiệm Vụ" />
-
+        android:id="@+id/taskFragment"
+        android:icon="@drawable/task_svgrepo_com"
+        android:title="Nhiệm vụ" />
     <item
-        android:id="@+id/nav_calendar"
-        android:icon="@drawable/baseline_calendar_today_24"
+        android:id="@+id/calendarFragment"
+        android:icon="@drawable/calendar_day_svgrepo_com"
         android:title="Lịch" />
-
     <item
-        android:id="@+id/nav_more"
+        android:id="@+id/settingsFragment"
         android:icon="@drawable/gear_svgrepo_com"
         android:title="Cài đặt" />
 </menu>

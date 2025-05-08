@@ -1,8 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_enable_detail"
-        android:orderInCategory="100"
-        android:title="@string/detail_enable"
+        android:id="@+id/action_search_tasks"
+        android:icon="@drawable/magnifying_glass_backup_svgrepo_com"
+        android:title="Tìm kiếm"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <!-- Thêm các item menu khác specific cho TaskFragment ở đây -->
+    <!-- Ví dụ: -->
+    <!-- <item
+        android:id="@+id/action_filter_tasks"
+        android:title="Lọc"
+        android:icon="@drawable/ic_filter"
+        app:showAsAction="ifRoom"/> -->
+
+    <item
+        android:id="@+id/action_detail_task"
+        android:title="Ẩn/Hiện chi tiết"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_acp_task"
+        android:title="Ẩn đã hoàn thành"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_filter_tasks"
+        android:title="Lọc"
         app:showAsAction="never" />
 </menu>

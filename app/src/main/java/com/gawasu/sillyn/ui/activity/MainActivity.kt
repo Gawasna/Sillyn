@@ -4,21 +4,23 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
 import com.gawasu.sillyn.R
 import com.gawasu.sillyn.databinding.ActivityMainBinding
-import com.gawasu.sillyn.ui.fragment.TaskFragment
 import com.gawasu.sillyn.ui.viewmodel.MainViewModel
 import com.gawasu.sillyn.utils.FirebaseResult
 import com.google.android.material.navigation.NavigationView
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var auth: FirebaseAuth
     private val mainViewModel: MainViewModel by viewModels()
+    private lateinit var navController: NavController // Thêm NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,38 +44,59 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBarMain.toolbar)
 
+        // Lấy NavController từ NavHostFragment
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        navController = navHostFragment.navController
+
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
+
+        // Định nghĩa các destination cấp cao nhất (top-level destinations)
+        // Navigation Component sẽ hiển thị biểu tượng Drawer (hamburger icon) cho các destination này
+        // Thay vì mũi tên Back.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_tasks, R.id.nav_calendar,
+                // IDs của các item trong BottomNavigationView
+                R.id.taskFragment, // ID của Task Fragment trong nav_graph
+                R.id.calendarFragment, // ID của Calendar Fragment trong nav_graph
+                R.id.settingsFragment, // ID của Settings Fragment trong nav_graph
+                // Có thể thêm IDs của các mục Drawer cấp cao nhất nếu chúng không dẫn đến TaskFragment
+                // (ví dụ: một trang "About" độc lập)
+                // Nếu các mục Drawer cố định dẫn đến TaskFragment với filter khác nhau,
+                // chỉ cần taskFragment là top-level destination.
             ), drawerLayout
         )
 
-        val toggle = ActionBarDrawerToggle(
-            this, drawerLayout, binding.appBarMain.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        )
-        drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
+        // Kết nối Toolbar với NavController và AppBarConfiguration
+        // Điều này xử lý tiêu đề trên Toolbar và nút Drawer/Back
+        setupActionBarWithNavController(navController, appBarConfiguration)
+
+        // Kết nối NavigationView (Drawer) với NavController
+        // Điều này xử lý việc tự động navigate khi click vào item Drawer
+        // (nếu ID item Drawer trùng với ID destination trong graph)
+        // Tuy nhiên, với dynamic items và passing arguments, chúng ta sẽ cần xử lý thủ công.
+        // Chỉ cần thiết lập cho các item cố định nếu ID trùng khớp.
+        // navView.setupWithNavController(navController) // Có thể bỏ qua nếu xử lý click thủ công
+
+        // Kết nối BottomNavigationView với NavController
+        // Điều này xử lý việc tự động navigate khi click vào item Bottom Nav
+        binding.bottomNavigation.setupWithNavController(navController)
+
 
         auth = FirebaseAuth.getInstance()
 
         setupNavHeader()
         setupLogoutButton()
-        setupMenuItems()
+        setupDrawerMenuItems() // Cập nhật tên hàm xử lý menu Drawer
         deb()
 
-        //setBottomItem() //debug
-
-        checkLoginStatus() // Kiểm tra trạng thái đăng nhập ngay khi MainActivity được tạo
+        checkLoginStatus()
 
         observeTaskCategories()
 
-
-        // Load TaskFragment into fragment_container - Đảm bảo Fragment chính được load
-        if (savedInstanceState == null) {
-            loadFragment(TaskFragment())
-        }
+        // Không cần loadFragment(TaskFragment()) thủ công nữa
+        // Navigation Component sẽ load app:startDestination (@id/taskFragment) tự động
     }
 
     private fun deb() {
@@ -83,20 +107,23 @@ class MainActivity : AppCompatActivity() {
     private fun checkLoginStatus() {
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            // Nếu chưa đăng nhập, chuyển hướng đến màn hình đăng nhập
             Log.i(TAG, "User not logged in in MainActivity, navigating to AuthenticationActivity")
             navigateToAuthenticationActivity()
         } else {
             Log.i(TAG, "User logged in, loading MainActivity content")
-            // Nếu đã đăng nhập, tiếp tục hiển thị MainActivity
+            // Ensure user data is loaded for nav header
+            setupNavHeader()
         }
     }
 
+    // Không cần hàm loadFragment thủ công nữa
+    /*
     private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, fragment)
             .commit()
     }
+    */
 
     private fun setupNavHeader() {
         val headerView = binding.navView.getHeaderView(0)
@@ -136,63 +163,93 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupMenuItems() {
+    // Cập nhật hàm xử lý click menu Drawer
+    private fun setupDrawerMenuItems() {
         binding.navView.setNavigationItemSelectedListener { menuItem ->
+            // Đóng drawer trước khi navigate
+            binding.drawerLayout.closeDrawer(binding.navView)
+
+            val bundle = Bundle()
+            bundle.putString("categoryName", null)
+
             when (menuItem.itemId) {
                 R.id.nav_inbox_tasks -> {
-                    // Handle Tasks menu item click
+                    Log.d(TAG, "Drawer: Inbox Tasks clicked")
+                    bundle.putString("filterType", "inbox")
+                    navController.navigate(R.id.taskFragment, bundle)
                 }
                 R.id.nav_today_tasks -> {
-                    // Handle Calendar menu item click
+                    Log.d(TAG, "Drawer: Today Tasks clicked")
+                    bundle.putString("filterType", "today")
+                    navController.navigate(R.id.taskFragment, bundle)
                 }
                 R.id.nav_week_task -> {
-                    //
+                    Log.d(TAG, "Drawer: Week Tasks clicked")
+                    bundle.putString("filterType", "week")
+                    navController.navigate(R.id.taskFragment, bundle)
+                }
+                // Dynamic items will be handled in updateDynamicMenuItems listener
+                else -> {
+                    // Các mục cố định khác nếu có
+                    Log.d(TAG, "Drawer: Unhandled menu item clicked: ${menuItem.title}")
+                    false
                 }
             }
-            binding.drawerLayout.closeDrawer(binding.navView)
-            true
+            true // Báo hiệu sự kiện đã được xử lý cho các item được xử lý tại đây
         }
     }
 
+    // Bỏ hoặc xoá hàm setBottomItem() thủ công
+    /*
     private fun setBottomItem() {
-        binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.nav_tasks -> {
-                    Log.d(TAG, "Click righ s ss")
-                }
-            }
-            true
-        }
+        // Already handled by setupWithNavController(navController)
     }
+    */
 
+    // Cập nhật hàm updateDynamicMenuItems để xử lý click với Navigation Component
     private fun updateDynamicMenuItems(categories: List<String>) {
         val navMenu = binding.navView.menu
-
-        // Xóa tất cả các item hiện có trong group R.id.menu_categories_group
-        // Điều này đảm bảo menu được cập nhật và không bị lặp lại các danh mục cũ
         navMenu.removeGroup(R.id.menu_categories_group)
 
-        // Duyệt qua danh sách categories và tạo item cho mỗi danh mục
         categories.forEachIndexed { index, categoryName ->
-            // Tạo một item mới. Tham số đầu tiên là group ID mà item này thuộc về.
-            val newItem = navMenu.add(
-                R.id.menu_categories_group, // Gán item này vào group có ID là menu_categories_group
-                Menu.FIRST + index, // ID duy nhất cho item (sử dụng index + offset để đơn giản)
-                Menu.NONE, // Thứ tự hiển thị (NONE hoặc một số int để sắp xếp)
-                categoryName // Tiêu đề của item
-            )
-            newItem.setIcon(R.drawable.baseline_calendar_today_24) // Bạn có thể thay đổi icon
+            // Tạo một ID duy nhất cho mỗi item động
+            // Có thể lưu category ID thực tế nếu bạn có nó, ví dụ: category.id
+            // Để đơn giản, ta dùng index + một offset lớn để tránh trùng với ID cố định
+            val dynamicItemId = Menu.FIRST + 100 + index // Offset để tránh trùng nav_inbox_tasks, v.v.
 
-            // Xử lý khi người dùng chọn danh mục
+            val newItem = navMenu.add(
+                R.id.menu_categories_group,
+                dynamicItemId, // Sử dụng ID động
+                Menu.NONE,
+                categoryName
+            )
+            newItem.setIcon(R.drawable.baseline_calendar_today_24) // Thay đổi icon nếu cần
+
+            // Xử lý khi người dùng chọn danh mục động
             newItem.setOnMenuItemClickListener {
-                Toast.makeText(this, "Clicked category: $categoryName", Toast.LENGTH_SHORT).show()
-                // TODO: Load fragment hoặc filter task theo category
-                binding.drawerLayout.closeDrawer(binding.navView) // Đóng drawer sau khi chọn
+                Log.d(TAG, "Drawer: Clicked category: $categoryName (ID: $dynamicItemId)")
+
+                // Chuẩn bị arguments để gửi đến TaskFragment
+                val bundle = Bundle()
+                // Giả sử categoryName có thể dùng để lọc, hoặc bạn có category ID thực tế
+                // Nếu bạn có category ID, hãy truyền nó thay vì tên
+                // bundle.putString("categoryId", actualCategoryId)
+                bundle.putString("filterType", "category") // Gán loại filter là 'category'
+                bundle.putString("categoryName", categoryName) // Truyền tên danh mục (hoặc ID thực)
+
+                // Navigate đến TaskFragment với arguments
+                navController.navigate(R.id.taskFragment, bundle)
+
+                binding.drawerLayout.closeDrawer(binding.navView)
                 true // Báo hiệu sự kiện đã được xử lý
             }
         }
         Log.d(TAG, "Dynamic categories menu updated with ${categories.size} items.")
+        // Cập nhật lại NavigationView với NavController sau khi thay đổi menu
+        // (Mặc dù setupWithNavController() ban đầu đã đủ kết nối cơ bản)
+        // binding.navView.setupWithNavController(navController) // Thường không cần thiết sau khi gọi onCreate
     }
+
 
     private fun observeTaskCategories() {
         mainViewModel.taskCategories.observe(this) { result ->
@@ -203,9 +260,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 is FirebaseResult.Error -> {
                     Log.e(TAG, "Lỗi khi load categories: ${result.exception}")
+                    Toast.makeText(this, "Không thể load danh mục", Toast.LENGTH_SHORT).show()
                 }
                 is FirebaseResult.Loading -> {
-                    // Có thể hiển thị một loading indicator nếu cần
+                    // Hiển thị loading indicator nếu cần
                 }
             }
         }
@@ -216,14 +274,26 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return super.onCreateOptionsMenu(menu)
+    // Bắt sự kiện Up/Back từ AppBar để Navigation Component xử lý
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        return true
+    // Inflate menu options (Search, Settings button on AppBar)
+//    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+//        menuInflater.inflate(R.menu.main_menu, menu)
+//        return true // Sử dụng true để hiển thị menu
+//    }
+
+    // Xử lý sự kiện click trên menu options (ví dụ nút search trên AppBar)
+    /*
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Let Navigation Component handle clicks on top-level destinations (if they exist in options menu)
+        // or if actions are defined to navigate from the current destination
+        return item.onNavDestinationSelected(navController) || super.onOptionsItemSelected(item)
     }
+    */
+
 
     companion object {
         private const val TAG = "MAIN ACTIVITY"

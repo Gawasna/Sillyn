@@ -1,19 +1,19 @@
 package com.gawasu.sillyn.data.repository
 
 import android.util.Log
+import com.gawasu.sillyn.data.local.UserIdProvider
 import com.gawasu.sillyn.data.remote.auth.AuthDataSource
 import com.gawasu.sillyn.utils.FirebaseResult
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val authDataSource: AuthDataSource
+    private val authDataSource: AuthDataSource,
+    private val userIdProvider: UserIdProvider
 ) : AuthRepositoryInterface {
 
     companion object {
         private const val TAG = "AUTH REPOSITORY"
     }
-
-    //TODO: Remove Log When Project is DONE
 
     override suspend fun loginWithEmailPassword(email: String, password: String): FirebaseResult<Boolean> {
         Log.d(TAG, "LOGIN: Called with email: $email")
@@ -46,6 +46,7 @@ class AuthRepositoryImpl @Inject constructor(
     override fun signOut() {
         Log.d(TAG, "LOG OUT: Called")
         authDataSource.signOut()
+        userIdProvider.setUserId(null)
         Log.d(TAG, "LOG OUT: SUCCESS")
     }
 

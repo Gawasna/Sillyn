@@ -1,0 +1,18 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/priority_none"
+        android:icon="@drawable/flag_svgrepo_com_none"
+        android:title="Không" />
+    <item
+        android:id="@+id/priority_low"
+        android:icon="@drawable/flag_svgrepo_com_low"
+        android:title="Thấp" />
+    <item
+        android:id="@+id/priority_medium"
+        android:icon="@drawable/flag_svgrepo_com_medium"
+        android:title="Trung bình" />
+    <item
+        android:id="@+id/priority_high"
+        android:icon="@drawable/flag_svgrepo_com_high"
+        android:title="Cao" />
+</menu>

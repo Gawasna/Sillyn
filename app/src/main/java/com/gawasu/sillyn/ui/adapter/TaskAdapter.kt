@@ -18,6 +18,7 @@ class TaskAdapter(private val listener: OnItemClickListener) :
     interface OnItemClickListener {
         fun onItemClick(task: Task)
         fun onCheckboxClick(task: Task, isChecked: Boolean)
+        //fun onItemLongClick(task: Task): Boolean
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
