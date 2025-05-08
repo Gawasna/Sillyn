@@ -144,5 +144,16 @@
     <string name="notification_title_early">Nhiệm vụ: %1$s sau %2$s nữa</string>
     <string name="notification_title_ontime">Nhắc nhở: %1$s đến hạn</string>
     <string name="notification_duedate">Đến hạn: %1$s </string>
-    <string name="notification_priority">Độ ưu tiên: %1$s</string>
+
+    <string name="priority_none_text">Không ưu tiên</string>
+    <string name="priority_low_text">Ưu tiên thấp</string>
+    <string name="priority_medium_text">Ưu tiên vừa</string>
+    <string name="priority_high_text">Ưu tiên cao</string>
+
+    <!-- Snackbar Messages -->
+    <string name="snackbar_category_parsed">Đã phát hiện danh mục: %s</string>
+    <string name="snackbar_priority_parsed">Đã phát hiện ưu tiên: %s</string>
+    <string name="snackbar_date_parsed">Đã phát hiện ngày đến hạn: %s</string>
+    <string name="snackbar_time_parsed">Đã phát hiện thời gian: %s</string>
+    <string name="notification_priority">Độ ưu tiên: %s</string>
 </resources>
