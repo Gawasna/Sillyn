@@ -13,8 +13,8 @@ kotlinxCoroutinesPlayServices = "1.7.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
 composeBom = "2024.04.01"
-googleServices = "4.4.0"
-firebaseBom = "29.0.0"
+googleServices = "4.4.2"
+firebaseBom = "33.13.0"
 constraintlayout = "2.2.1"
 material = "1.12.0"
 coreSplashscreen = "1.0.1"
@@ -29,6 +29,7 @@ navigationUiKtx = "2.8.9"
 hiltAndroid = "2.56.1"
 work-runtime-ktx = "2.9.0"
 hilt-work = "1.2.0"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 android-week-view = { module = "com.github.quivr:android-week-view", version.ref = "androidWeekView" }
@@ -69,6 +70,7 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 androidx-core = { group = "androidx.core", name = "core", version.ref = "coreKtx" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work-runtime-ktx" }
 androidx-hilt-work = { module = "androidx.hilt:hilt-work", version.ref = "hilt-work" }
+androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 
 [plugins]

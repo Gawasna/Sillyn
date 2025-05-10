@@ -156,4 +156,32 @@
     <string name="snackbar_date_parsed">Đã phát hiện ngày đến hạn: %s</string>
     <string name="snackbar_time_parsed">Đã phát hiện thời gian: %s</string>
     <string name="notification_priority">Độ ưu tiên: %s</string>
+
+    <string name="add_new_task_title">Thêm nhiệm vụ mới</string>
+    <string name="edit_task_title">Sửa nhiệm vụ</string>
+    <string name="search_hint">Tìm kiếm nhiệm vụ...</string>
+    <string name="sort_by_none">Mặc định</string>
+    <string name="sort_by_priority">Sắp theo ưu tiên</string>
+    <string name="sort_by_due_date">Sắp xếp theo ngày</string>
+    <string name="filter_tasks">Lọc</string>
+    <string name="hide_completed_tasks">Ẩn Đã hoàn thành</string>
+    <string name="search_tasks">Tìm kiếm nhiệm vụ</string>
+    <string name="select_category_hint">Chọn danh mục</string>
+    <string name="sort_none">Mặc định</string>
+    <string name="sort_priority">Xếp theo ưu tiên</string>
+    <string name="sort_duedate">Xếp theo ngày</string>
+    <string name="sort_by_title">Sắp xếp</string>
+    <string name="no_due_date">Không có hạn</string>
+    <string name="reminder_3h">Sớm 3 tiếng</string>
+    <string name="reminder_1d">Sớm 1 ngày</string>
+    <string name="what_do_you_want_to_do">"Bạn muốn làm gì "</string>
+    <string name="task_description">Mô tả nhiệm vụ</string>
+
+    <string name="sort_by_priority_checked">✓ Sắp xếp theo Độ ưu tiên</string>
+    <string name="sort_by_due_date_checked">✓ Sắp xếp theo Ngày đến hạn</string>
+
+    <!-- Strings cho dialog xác nhận xóa -->
+    <string name="confirm_delete_title">Xác nhận xóa</string>
+    <string name="confirm_delete_message">Bạn có chắc chắn muốn xóa nhiệm vụ "%1$s" không?</string>
+
 </resources>

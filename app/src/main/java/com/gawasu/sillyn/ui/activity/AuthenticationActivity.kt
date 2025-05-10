@@ -3,15 +3,19 @@ package com.gawasu.sillyn.ui.activity
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.gawasu.sillyn.R
 import com.gawasu.sillyn.databinding.ActivityAuthenticationBinding
 import com.gawasu.sillyn.ui.fragment.AuthenticationOptionsFragment
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import com.gawasu.sillyn.utils.FirebaseResult
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AuthenticationActivity : AppCompatActivity() {
@@ -68,19 +72,21 @@ class AuthenticationActivity : AppCompatActivity() {
             when (result) {
                 is FirebaseResult.Loading -> {
                     Log.d(TAG, "Login Loading...")
-                    // TODO: Show loading indicator (nếu cần ở Activity level)
+                    Toast.makeText(this, "Đang đăng nhập...", Toast.LENGTH_SHORT).show()
                 }
                 is FirebaseResult.Success -> {
-                    // Login successful
                     Log.i(TAG, "Login Success in Activity, navigating to MainActivity")
-                    navigateToMainActivity()
+                    Toast.makeText(this, "Thành công", Toast.LENGTH_SHORT).show()
+                    lifecycleScope.launch {
+                        delay(1500) // Delay 1.5s
+                        navigateToMainActivity()
+                    }
                 }
                 is FirebaseResult.Error -> {
-                    // Login failed - Fragment sẽ handle hiển thị lỗi, Activity có thể không cần handle ở đây
                     val errorMessage = result.exception.localizedMessage ?: getString(R.string.authentication_error, "Unknown error")
                     Log.e(TAG, "Login Failed in Activity: $errorMessage")
-                    // Toast.makeText(this, getString(R.string.login_failed, errorMessage), Toast.LENGTH_LONG).show()
-                    // TODO: Hide loading indicator
+                    // Có thể thêm Toast lỗi ở đây nếu muốn
+                    Toast.makeText(this, "Đăng nhập thất bại: $errorMessage", Toast.LENGTH_LONG).show()
                 }
             }
         }

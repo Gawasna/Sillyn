@@ -4,29 +4,35 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.app.TimePickerDialog
 import android.content.Context
-import android.graphics.PorterDuff // Required for tinting if used
+import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat // Required for tinting
+import androidx.core.content.ContextCompat
 import androidx.core.os.BundleCompat
-import androidx.core.widget.doAfterTextChanged // Use doAfterTextChanged for Flows
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.setFragmentResult
-import androidx.lifecycle.lifecycleScope // Required for lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import com.gawasu.sillyn.R
 import com.gawasu.sillyn.databinding.DialogAddTaskBinding
 import com.gawasu.sillyn.domain.model.Task
-import com.gawasu.sillyn.ui.fragment.TaskFragment // Import TaskFragment to access its public constants
-import com.gawasu.sillyn.utils.ParseHelper // Import ParseHelper
-import com.gawasu.sillyn.utils.ParsedEntities // Import ParsedEntities
-import com.google.android.material.snackbar.Snackbar // Import Snackbar
+import com.gawasu.sillyn.ui.fragment.TaskFragment
+import com.gawasu.sillyn.utils.ParseHelper
+import com.gawasu.sillyn.utils.ParsedEntities
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -38,13 +44,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import androidx.core.widget.doAfterTextChanged
-import kotlinx.coroutines.launch // Import launch for coroutines
-// import com.google.firebase.auth.FirebaseAuth // Không cần FirebaseAuth ở đây nếu không fetch categories từ dialog
+import kotlinx.coroutines.launch
 
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit // Import TimeUnit
 
 class AddTaskDialogFragment : DialogFragment() {
 
@@ -62,6 +68,9 @@ class AddTaskDialogFragment : DialogFragment() {
 
     // Variable to hold Task ID if we are editing
     private var taskIdToEdit: String? = null
+    // Variable to hold the original task object if editing
+    private var originalTaskToEdit: Task? = null
+
 
     // Danh sách category có sẵn (sẽ được nhận qua arguments)
     private var availableCategories: List<String> = emptyList()
@@ -149,6 +158,7 @@ class AddTaskDialogFragment : DialogFragment() {
         arguments?.let {
             val taskToEdit: Task? = BundleCompat.getParcelable(it, ARG_TASK_TO_EDIT, Task::class.java)
             if (taskToEdit != null) {
+                originalTaskToEdit = taskToEdit // Store original task
                 loadTaskForEditing(taskToEdit)
                 // Disable auto-parsing in edit mode
                 Log.d(TAG, "Edit mode (${taskToEdit.id}), auto-parsing disabled.")
@@ -161,6 +171,25 @@ class AddTaskDialogFragment : DialogFragment() {
                     Log.d(TAG, "Default category set from args: $selectedCategory")
                 }
                 setupTextChangeListenersForParsing() // Setup parsing only in Add mode
+
+                // Check ML Kit model status immediately on creation in Add mode
+                if (parseHelper.isModelDownloaded()) {
+                    Log.d(TAG, "ML Kit model is already downloaded and ready on create (Add Mode).")
+                    // Trigger initial parse if text fields are pre-filled (unlikely in add mode but safe)
+                    val currentTitle = binding.editTextTaskTitle.text?.toString() ?: ""
+                    val currentDescription = binding.editTextTaskDescription.text?.toString() ?: ""
+                    if (currentTitle.isNotBlank() || currentDescription.isNotBlank()) {
+                        parseAndApply(currentTitle, currentDescription)
+                    } else {
+                        // notthing
+                    }
+                } else if (parseHelper.isModelDownloadInProgress()) {
+                    Log.i(TAG, "ML Kit model download in progress on create (Add Mode). Parse will trigger after debounce if model becomes ready.")
+                    // No need to observe a non-existent flow. Rely on isModelDownloaded() in onEach.
+                } else {
+                    Log.w(TAG, "ML Kit model not downloaded on create (Add Mode). Parse will trigger after debounce if model becomes ready.")
+                    // No need to observe a non-existent flow. Rely on isModelDownloaded() in onEach.
+                }
             }
         }
 
@@ -169,39 +198,28 @@ class AddTaskDialogFragment : DialogFragment() {
         // Initial UI update based on default values or loaded task
         updatePriorityButtonIcon()
         updateCategoryButtonText()
-        updateDueDateButtonText()
-        updateDueTimeButtonText()
+        updateDueDateButtonText() // This will now only update contentDescription/icon for date button
+        updateDueTimeButtonText() // This will now only update contentDescription/icon for time button
         Log.d(TAG, "Initial UI updated.")
 
         // Initialize selectedReminderLabel and update UI
-        if (selectedReminderLabel.isBlank()) {
-            selectedReminderLabel = getString(R.string.reminder_ontime) // Default label
+        // If editing, it's loaded in loadTaskForEditing. If adding, use default.
+        if (selectedReminderLabel.isBlank() && originalTaskToEdit == null) { // Only default if adding and not loaded
+            selectedReminderLabel = mapReminderTypeToLabel(Task.ReminderType.ON_TIME.name) // Default label
             Log.d(TAG, "Reminder label defaulted to: $selectedReminderLabel")
         }
-        updateReminderTypeButtonTextAndIcon()
+        updateReminderTypeButtonTextAndIcon() // This will update text on the reminder button
 
         // TODO: updateRepeatModeButtonText()
 
-        // Set initial values for Flow. This is crucial to trigger the combine
-        // and potentially an initial parse if EditTexts are pre-filled (e.g., in edit mode, though parse is disabled).
-        // In add mode, they are initially empty, so flows will start with "".
-        titleTextFlow.value = binding.editTextTaskTitle.text?.toString() ?: ""
-        descriptionTextFlow.value = binding.editTextTaskDescription.text?.toString() ?: ""
-        Log.d(TAG, "Initial flow values set: title='${titleTextFlow.value}', description='${descriptionTextFlow.value}'")
-
-        // Manually trigger parse if in Add mode and model is ready (handles case where model is ready immediately)
-        if (taskIdToEdit == null && parseHelper.isModelDownloaded()) {
-            Log.d(TAG, "Model ready on creation, triggering initial parse.")
-            // Use current text, as flow might not have emitted yet depending on lifecycle
-            val currentTitle = binding.editTextTaskTitle.text?.toString() ?: ""
-            val currentDescription = binding.editTextTaskDescription.text?.toString() ?: ""
-            if (currentTitle.isNotBlank() || currentDescription.isNotBlank()) {
-                parseAndApply(currentTitle, currentDescription)
-            }
-        } else if (taskIdToEdit == null && parseHelper.isModelDownloadInProgress()) {
-            Log.d(TAG, "Model downloading on creation.")
-        } else if (taskIdToEdit == null) {
-            Log.d(TAG, "Model not ready on creation, parse will trigger after download or text change.")
+        // Set initial values for Flow. This is mainly relevant for Add mode parsing.
+        // Ensure flows are updated from current text if the dialog is recreated (e.g. config change)
+        if (taskIdToEdit == null) { // Only do this in Add mode
+            titleTextFlow.value = binding.editTextTaskTitle.text?.toString() ?: ""
+            descriptionTextFlow.value = binding.editTextTaskDescription.text?.toString() ?: ""
+            Log.d(TAG, "Initial flow values set (Add Mode): title='${titleTextFlow.value}', description='${descriptionTextFlow.value}'")
+        } else {
+            Log.d(TAG, "Edit mode, skipping initial flow value setting.")
         }
 
     }
@@ -216,41 +234,47 @@ class AddTaskDialogFragment : DialogFragment() {
 
         selectedPriority = try { Task.Priority.valueOf(task.priority) } catch (e: IllegalArgumentException) { Task.Priority.NONE }
         Log.d(TAG, "Loaded Priority: $selectedPriority")
+
         selectedCategory = task.category
         Log.d(TAG, "Loaded Category: $selectedCategory")
 
-
         selectedDueDate = task.dueDate
-        selectedDueDate?.let {
-            val calendar = Calendar.getInstance().apply { time = it }
-            // Check if time component is non-midnight
+        // Load selectedDueTime if the loaded date has a time component
+        task.dueDate?.let { date ->
+            val calendar = Calendar.getInstance().apply { time = date }
+            // Check if time component is non-midnight or non-zero seconds/milliseconds
             if (calendar.get(Calendar.HOUR_OF_DAY) != 0 || calendar.get(Calendar.MINUTE) != 0 || calendar.get(Calendar.SECOND) != 0 || calendar.get(Calendar.MILLISECOND) != 0) {
                 selectedDueTime = calendar
-                Log.d(TAG, "Loaded Due Date/Time: ${it} (with time)")
+                Log.d(TAG, "Loaded Due Date/Time: ${date} (with time component)")
             } else {
-                selectedDueTime = null // Clear time if it was midnight (date-only)
-                Log.d(TAG, "Loaded Due Date: ${it} (date only)")
+                selectedDueTime = null // Treat as date-only if time is midnight
+                Log.d(TAG, "Loaded Due Date: ${date} (date only)")
             }
-        } ?: Log.d(TAG, "Loaded Due Date: null")
-
-
-        // Load reminder type (Needs mapping from Task.reminderType string to prototype labels)
-        // Assuming Task.reminderType stores the standard string ("ON_TIME", "EARLY_30M", etc.)
-        selectedReminderLabel = when(task.reminderType) {
-            "ON_TIME" -> getString(R.string.reminder_ontime)
-            "EARLY_30M" -> getString(R.string.reminder_early_30m)
-            "EARLY_1H" -> getString(R.string.reminder_early_1h)
-            "EARLY_3H" -> getString(R.string.reminder_early_3h)
-            "EARLY_1D" -> getString(R.string.reminder_early_1d)
-            else -> getString(R.string.reminder_ontime) // Default if value is not recognized
+        } ?: run {
+            selectedDueDate = null
+            selectedDueTime = null
+            Log.d(TAG, "Loaded Due Date: null")
         }
-        Log.d(TAG, "Loaded Reminder Label: $selectedReminderLabel")
+
+
+        // Load reminder type (Mapping from Task.reminderType string to prototype labels)
+        selectedReminderLabel = mapReminderTypeToLabel(task.reminderType)
+        Log.d(TAG, "Loaded Reminder Label: $selectedReminderLabel (from type: ${task.reminderType})")
+
 
         // TODO: Load Repeat Mode, Tags, Status, Type if UI supports
 
         // Change button UI for editing mode
         binding.buttonAddTask.contentDescription = getString(R.string.update_task)
-        binding.buttonAddTask.setImageResource(R.drawable.baseline_check_box_outline_blank_24) // Need ic_check_24 icon - assuming this is the 'check' icon
+        // Assuming baseline_done_24 is available or using a placeholder
+        // FIX: Changed icon to one that exists in the provided XMLs (checked_checkbox_svgrepo_com)
+        // Also tinting with a standard teal color.
+        binding.buttonAddTask.setImageResource(R.drawable.checked_checkbox_svgrepo_com) // Use a checkmark/done icon
+        binding.buttonAddTask.setColorFilter(ContextCompat.getColor(requireContext(), R.color.teal_200), PorterDuff.Mode.SRC_IN) // Optional: Tint green
+
+
+        // Disable or hide elements not relevant for edit mode if needed (e.g., repeat)
+        // binding.buttonRepeat.visibility = View.GONE // Example
     }
 
 
@@ -269,6 +293,12 @@ class AddTaskDialogFragment : DialogFragment() {
     // Setup text change listeners for auto-parsing (only in Add mode)
     private fun setupTextChangeListenersForParsing() {
         Log.d(TAG, "Setting up text change listeners for parsing.")
+        // Ensure this is only called when taskIdToEdit is null (Add mode)
+        if (taskIdToEdit != null) {
+            Log.w(TAG, "setupTextChangeListenersForParsing called in Edit mode. Skipping.")
+            return
+        }
+
 
         // Manually update flows on text change. This is simpler than a custom flow extension.
         binding.editTextTaskTitle.doAfterTextChanged { editable ->
@@ -293,26 +323,28 @@ class AddTaskDialogFragment : DialogFragment() {
             .onEach { (title, description) ->
                 Log.d(TAG, "Debounce finished. Triggering parse for title='${title}', description='${description}'")
                 // Only parse if model is ready, or if text is empty (for reset)
+                // Rely on isModelDownloaded() check
                 if (parseHelper.isModelDownloaded() || (title.isBlank() && description.isBlank())) {
                     parseAndApply(title, description)
                 } else {
-                    // Optionally show a temporary message if model is still downloading
+                    // Optionally log if model is still downloading or not ready
                     if (parseHelper.isModelDownloadInProgress()) {
-                        Log.i(TAG, "Model is still downloading, skipping parse.")
-                        // Consider a UI indicator here instead of a Snackbar
+                        Log.i(TAG, "ML Kit Model is still downloading, skipping parse after debounce.")
                     } else {
-                        // This case should be rare if initialization is handled correctly, but logs it.
-                        Log.w(TAG, "Model not downloaded and not downloading, skipping parse.")
+                        Log.w(TAG, "ML Kit Model not ready after debounce, skipping parse.")
                     }
                 }
             }
             .launchIn(viewLifecycleOwner.lifecycleScope) // Launch coroutine in the fragment's view lifecycle scope
     }
 
-    // Removed the textChangesAsFlow extension as doAfterTextChanged with MutableStateFlow is cleaner
-
-
     private fun parseAndApply(title: String, description: String) {
+        // Ensure this is only called in Add mode
+        if (taskIdToEdit != null) {
+            Log.w(TAG, "parseAndApply called in Edit mode. Skipping.")
+            return
+        }
+
         // Run parsing in a coroutine
         viewLifecycleOwner.lifecycleScope.launch {
             Log.d(TAG, "Starting parseAndApply for title='${title}', description='${description}'")
@@ -324,122 +356,132 @@ class AddTaskDialogFragment : DialogFragment() {
 
             // 1. Category
             val oldCategory = selectedCategory
+            // Only apply parsed category if it's NOT null AND it's different from the current state
             if (parsedEntities.category != null && parsedEntities.category != oldCategory) {
+                // Also check if the parsed category is one of the available categories, or allow new?
+                // For simplicity, allow parsed category even if not in the initial list
                 selectedCategory = parsedEntities.category
-                Log.d(TAG, "Category changed: '$oldCategory' -> '$selectedCategory'. Updating UI.")
+                Log.d(TAG, "Category changed by parse: '$oldCategory' -> '$selectedCategory'. Updating UI.")
                 updateCategoryButtonText()
                 showSnackbar("Đã phát hiện danh mục: ${selectedCategory}")
-            } else if (parsedEntities.category == null && oldCategory != arguments?.getString(ARG_DEFAULT_CATEGORY_NAME) && taskIdToEdit == null) {
-                // Reset category only if it was previously set (and wasn't the default) and parse now yields null
+            } else if (parsedEntities.category == null && oldCategory != arguments?.getString(ARG_DEFAULT_CATEGORY_NAME)) {
+                // Reset category to default or null ONLY if the parse result is null
+                // AND the current category is NOT already the default category from args
                 selectedCategory = arguments?.getString(ARG_DEFAULT_CATEGORY_NAME)
                 if (selectedCategory != oldCategory) {
-                    Log.d(TAG, "Category reset: '$oldCategory' -> '$selectedCategory' (default). Updating UI.")
+                    Log.d(TAG, "Category reset by parse: '$oldCategory' -> '$selectedCategory' (default/null). Updating UI.")
                     updateCategoryButtonText()
+                    // No snackbar for reset
                 } else {
-                    Log.d(TAG, "Category reset logic triggered, but category is already default or null. No UI update needed.")
+                    Log.d(TAG, "Category parse result is null, but current category is already default/null. No change.")
                 }
-                // No snackbar needed for reset
             } else {
-                Log.d(TAG, "Category parse result: ${parsedEntities.category}. No change or cannot reset default. Current: '$oldCategory'")
+                Log.d(TAG, "Category parse result: ${parsedEntities.category}. No change from parse or currently matches default. Current: '$oldCategory'")
             }
 
 
             // 2. Priority
             val oldPriority = selectedPriority
+            // Only apply parsed priority if it's NOT NONE AND it's different from the current state
             if (parsedEntities.priority != Task.Priority.NONE && parsedEntities.priority != oldPriority) {
                 selectedPriority = parsedEntities.priority
-                Log.d(TAG, "Priority changed: '$oldPriority' -> '$selectedPriority'. Updating UI.")
+                Log.d(TAG, "Priority changed by parse: '$oldPriority' -> '$selectedPriority'. Updating UI.")
                 updatePriorityButtonIcon()
                 showSnackbar("Đã phát hiện ưu tiên: ${selectedPriority.getLocalizedName()}") // Need localized name
             } else if (parsedEntities.priority == Task.Priority.NONE && oldPriority != Task.Priority.NONE) {
-                // Reset priority only if it was previously set and parse now yields NONE
+                // Reset priority ONLY if parse result is NONE and current priority is not already NONE
                 selectedPriority = Task.Priority.NONE
-                Log.d(TAG, "Priority reset: '$oldPriority' -> '$selectedPriority'. Updating UI.")
+                Log.d(TAG, "Priority reset by parse: '$oldPriority' -> '$selectedPriority'. Updating UI.")
                 updatePriorityButtonIcon()
-                // No snackbar needed for reset
+                // No snackbar for reset
             } else {
-                Log.d(TAG, "Priority parse result: ${parsedEntities.priority}. No change. Current: '$oldPriority'")
+                Log.d(TAG, "Priority parse result: ${parsedEntities.priority}. No change from parse. Current: '$oldPriority'")
             }
 
 
             // 3. Date and Time
             val oldDueDate = selectedDueDate
-            val oldDueTime = selectedDueTime
+            val oldDueTime = selectedDueTime // Calendar instance
 
-            // Handle parsed Date: Overwrites current date part
-            // Handle parsed Time: Overwrites current time part
-            // The ParseHelper now returns a combined timestamp in parsedDueDate and a Calendar in parsedDueTime
-            // We should use parsedDueTime if available, as it contains both date and time information parsed by ML Kit
-            // If only parsedDueDate is available, it means ML Kit found only a date (time is midnight).
+            var parsedDate: Date? = parsedEntities.dueDate // Date part from parse
+            var parsedTime: Calendar? = parsedEntities.dueTime // Calendar (Date + Time) from parse
 
-            var appliedDueDate: Date? = null
-            var appliedDueTime: Calendar? = null
+            // Logic: Prioritize parsedTime (if DateTime parsed), then parsedDate (if only Date parsed).
+            // If parsedTime is available, it contains both date and time from ML Kit.
+            // If only parsedDate is available, ML Kit found a date entity with granularity < HOUR (time is implicitly midnight).
+            // If both are null, no date/time found.
 
-            if (parsedEntities.dueTime != null) {
-                // ML Kit found a DateTime or Time, use the calendar provided
-                appliedDueTime = parsedEntities.dueTime
-                appliedDueDate = parsedEntities.dueTime.time // Sync date part
-                Log.d(TAG, "Applying parsed DueTime/DueDate from ML Kit Calendar.")
-            } else if (parsedEntities.dueDate != null) {
-                // ML Kit found only a Date (granularity < HOUR), time is midnight
-                appliedDueDate = parsedEntities.dueDate
-                appliedDueTime = null // Explicitly nullify time
-                Log.d(TAG, "Applying parsed DueDate only from ML Kit (time is midnight).")
+            var newSelectedDate: Date? = null
+            var newSelectedTime: Calendar? = null
+
+            if (parsedTime != null) {
+                // ML Kit parsed a DateTime or Time. Use the full Calendar object.
+                newSelectedTime = parsedTime
+                newSelectedDate = parsedTime.time // Date part synced with the Calendar
+                Log.d(TAG, "Parse: ML Kit provided Calendar (DateTime/Time). Using parsed time: ${newSelectedTime.time}")
+            } else if (parsedDate != null) {
+                // ML Kit parsed only a Date (time is midnight).
+                newSelectedDate = parsedDate
+                newSelectedTime = null // Ensure time is null if only date was parsed
+                Log.d(TAG, "Parse: ML Kit provided only Date (time is midnight). Using parsed date: $newSelectedDate")
             } else {
-                // No Date or Time parsed
-                Log.d(TAG, "No Date or Time parsed by ML Kit.")
-                // Keep null, the reset logic below handles it
+                // No date or time parsed.
+                newSelectedDate = null
+                newSelectedTime = null
+                Log.d(TAG, "Parse: No Date or Time found.")
             }
 
+            // --- Determine if state changed and apply updates ---
+            val dueDateChanged = !datesEqual(newSelectedDate, oldDueDate)
+            // Compare time component *only* if both old and new states have a potential time source
+            val dueTimeChanged = !calendarsEqual(newSelectedTime, oldDueTime)
 
-            // Apply updates if changed
-            val dueDateChanged = !datesEqual(appliedDueDate, oldDueDate)
-            val dueTimeChanged = !calendarsEqual(appliedDueTime, oldDueTime) // Compare Calendar instances
 
+            if (dueDateChanged || dueTimeChanged) {
+                // Apply the new state only if *any* part changed or if both are null now and were not null before
+                if (newSelectedDate != null || newSelectedTime != null || oldDueDate != null || oldDueTime != null) {
+                    selectedDueDate = newSelectedDate
+                    selectedDueTime = newSelectedTime // Update time calendar based on parse result
 
-            if (dueDateChanged) {
-                selectedDueDate = appliedDueDate
-                Log.d(TAG, "DueDate changed. Updating UI. Old: ${oldDueDate}, New: ${selectedDueDate}")
-                updateDueDateButtonText()
-                if (selectedDueDate != null) {
-                    showSnackbar("Đã phát hiện ngày đến hạn: ${SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(selectedDueDate!!)}")
+                    Log.d(TAG, "Date/Time state changed. Old: ${oldDueDate}/${oldDueTime?.time}, New: ${selectedDueDate}/${selectedDueTime?.time}. Updating UI.")
+
+                    updateDueDateButtonText() // Only updates contentDescription/icon
+                    updateDueTimeButtonText() // Only updates contentDescription/icon
+
+                    // Show snackbar only if *something* was parsed successfully
+                    if (newSelectedDate != null || newSelectedTime != null) {
+                        val dateText = selectedDueDate?.let { SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(it) } ?: ""
+                        val timeText = selectedDueTime?.let { SimpleDateFormat("HH:mm", Locale.getDefault()).format(it.time) } ?: ""
+                        val message = when {
+                            timeText.isNotBlank() && dateText.isNotBlank() -> "Đã phát hiện ngày và giờ: $dateText lúc $timeText"
+                            dateText.isNotBlank() -> "Đã phát hiện ngày đến hạn: $dateText"
+                            timeText.isNotBlank() -> "Đã phát hiện thời gian: $timeText"
+                            else -> "" // Should not happen based on outer check
+                        }
+                        if (message.isNotBlank()) {
+                            showSnackbar(message)
+                        }
+                    } else {
+                        // Show snackbar for reset if needed (e.g., text cleared)
+                        if (oldDueDate != null || oldDueTime != null) {
+                            showSnackbar("Ngày và giờ đến hạn đã được xóa.")
+                        }
+                    }
+
                 } else {
-                    // Snackbar for date reset isn't explicitly requested, but could add one if needed
-                    // showSnackbar("Ngày đến hạn đã được xóa.")
+                    Log.d(TAG, "Date/Time parse result is null and current state was already null. No change.")
                 }
             } else {
-                Log.d(TAG, "DueDate did not change. Current: $selectedDueDate")
+                Log.d(TAG, "Date/Time state did not change from parse results.")
             }
 
-            if (dueTimeChanged) {
-                selectedDueTime = appliedDueTime
-                Log.d(TAG, "DueTime changed. Updating UI. Old: ${oldDueTime?.time}, New: ${selectedDueTime?.time}")
-                updateDueTimeButtonText()
-                // Note: updateDueDateButtonText is also called if time changes, to show combined format
-                updateDueDateButtonText()
-                if (selectedDueTime != null) {
-                    showSnackbar("Đã phát hiện thời gian: ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(selectedDueTime!!.time)}")
-                } else {
-                    // Snackbar for time reset isn't explicitly requested
-                    // showSnackbar("Thời gian đến hạn đã được xóa.")
-                }
-            } else {
-                Log.d(TAG, "DueTime did not change. Current: ${selectedDueTime?.time}")
-            }
 
-            // Handle case where text becomes empty and previously there was date/time
-            if (title.isBlank() && description.isBlank() && (oldDueDate != null || oldDueTime != null)) {
-                // Only reset if parse result was also null for date/time (handled by appliedDueDate/Time being null)
-                if (appliedDueDate == null && appliedDueTime == null) {
-                    selectedDueDate = null
-                    selectedDueTime = null
-                    Log.d(TAG, "Text is blank and no date/time parsed. Resetting DueDate and DueTime.")
-                    updateDueDateButtonText()
-                    updateDueTimeButtonText()
-                }
-            }
+            // --- Handle Reminder Type (Not typically parsed by ML Kit entities like this, but could be if implemented) ---
+            // If your ML Kit model *could* parse specific reminder phrases, you would add similar logic here.
+            // For now, rely on manual selection via showReminderTypePicker.
+            Log.d(TAG, "Reminder type parsing is not implemented in ParseHelper. Current reminder label: $selectedReminderLabel")
 
-            Log.d(TAG, "parseAndApply finished. Current state: Category=${selectedCategory}, Priority=${selectedPriority}, DueDate=${selectedDueDate}, DueTime=${selectedDueTime?.time}")
+            Log.d(TAG, "parseAndApply finished. Current state: Category=${selectedCategory}, Priority=${selectedPriority}, DueDate=${selectedDueDate}, DueTime=${selectedDueTime?.time}, ReminderLabel=${selectedReminderLabel}")
 
         }
     }
@@ -447,6 +489,7 @@ class AddTaskDialogFragment : DialogFragment() {
     // Helper function for showing snackbar
     private fun showSnackbar(message: String) {
         // Ensure Snackbar is shown on the root view of the dialog for correct placement
+        // Or potentially use requireView().parent as view if the root layout isn't ideal
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
         Log.d(TAG, "Showing Snackbar: \"$message\"")
     }
@@ -455,17 +498,47 @@ class AddTaskDialogFragment : DialogFragment() {
     // Put this in a shared utils file or in Task.kt if preferred
     fun Task.Priority.getLocalizedName(): String {
         // Use requireContext() instead of context? for safety in onViewCreated scope
-        return when (this) {
-            Task.Priority.NONE -> requireContext().getString(R.string.priority_none_text)
-            Task.Priority.LOW -> requireContext().getString(R.string.priority_low_text)
-            Task.Priority.MEDIUM -> requireContext().getString(R.string.priority_medium_text)
-            Task.Priority.HIGH -> requireContext().getString(R.string.priority_high_text)
+        return try {
+            when (this) {
+                Task.Priority.NONE -> requireContext().getString(R.string.priority_none_text)
+                Task.Priority.LOW -> requireContext().getString(R.string.priority_low_text)
+                Task.Priority.MEDIUM -> requireContext().getString(R.string.priority_medium_text)
+                Task.Priority.HIGH -> requireContext().getString(R.string.priority_high_text)
+            }
+        } catch (e: IllegalStateException) {
+            // Catch case where context is not available (shouldn't happen in onViewCreated but defensive)
+            this.name // Return raw name as fallback
+        }
+    }
+
+    // Helper to map ReminderType string from Task object to prototype label strings
+    private fun mapReminderTypeToLabel(reminderType: String?): String {
+        // FIX: Ensure mapping handles null/unknown types safely
+        return when(reminderType) {
+            Task.ReminderType.ON_TIME.name -> getString(R.string.reminder_ontime)
+            "EARLY_30M" -> getString(R.string.reminder_early_30m)
+            "EARLY_1H" -> getString(R.string.reminder_early_1h)
+            "EARLY_3H" -> getString(R.string.reminder_early_3h)
+            "EARLY_1D" -> getString(R.string.reminder_early_1d)
+            else -> getString(R.string.reminder_ontime) // Default for null or unknown types
+        }
+    }
+
+    // Helper to map prototype label strings back to Task.ReminderType standard strings
+    private fun mapLabelToReminderType(label: String): String {
+        return when(label) {
+            getString(R.string.reminder_ontime) -> Task.ReminderType.ON_TIME.name
+            getString(R.string.reminder_early_30m) -> "EARLY_30M" // Use standard string
+            getString(R.string.reminder_early_1h) -> "EARLY_1H"
+            getString(R.string.reminder_early_3h) -> "EARLY_3H"
+            getString(R.string.reminder_early_1d) -> "EARLY_1D"
+            else -> Task.ReminderType.ON_TIME.name // Default
         }
     }
 
 
-    //region // --- Show Picker Dialogs --- (Existing code - Unchanged)
-    // ... (showPriorityPicker, showCategoryPicker, showAddNewCategoryDialog, showDatePicker, showTimePicker, showReminderTypePicker, showRepeatModePicker) ...
+    //region // --- Show Picker Dialogs --- (Existing code with minor adjustments)
+
     private fun showPriorityPicker() {
         Log.d(TAG, "Showing priority picker.")
         val popupMenu = PopupMenu(requireContext(), binding.buttonPriority)
@@ -491,8 +564,8 @@ class AddTaskDialogFragment : DialogFragment() {
             selectedPriority = when (item.itemId) {
                 R.id.priority_none -> Task.Priority.NONE
                 R.id.priority_low -> Task.Priority.LOW
-                R.id.priority_medium -> Task.Priority.MEDIUM
-                R.id.priority_high -> Task.Priority.HIGH
+                R.id.priority_medium -> Task.Priority.MEDIUM // Corrected typo here
+                R.id.priority_high -> Task.Priority.HIGH // Corrected typo here
                 else -> Task.Priority.NONE
             }
             Log.d(TAG, "Priority selected from picker: $selectedPriority")
@@ -545,6 +618,7 @@ class AddTaskDialogFragment : DialogFragment() {
                     Log.d(TAG, "New category '$newCategory' added and selected.")
                     updateCategoryButtonText()
                     // Add the new category to the available list *temporarily* for this dialog session
+                    // This ensures it appears in the picker if the user opens it again within the same dialog session
                     if (!availableCategories.contains(newCategory)) {
                         availableCategories = availableCategories + newCategory
                         Log.d(TAG, "Added '$newCategory' to availableCategories list temporarily.")
@@ -554,7 +628,8 @@ class AddTaskDialogFragment : DialogFragment() {
                     Log.d(TAG, "New category name is blank.")
                     Toast.makeText(requireContext(), "Tên danh mục không được để trống", Toast.LENGTH_SHORT).show()
                 }
-                dialog.dismiss()
+                // Don't dismiss the dialog here, let the system handle it after the button click listener
+                // dialog.dismiss() // Removed this line
             }
             .setNegativeButton(getString(R.string.cancel), null)
             .show()
@@ -564,7 +639,7 @@ class AddTaskDialogFragment : DialogFragment() {
     private fun showDatePicker() {
         Log.d(TAG, "Showing Date Picker. Current selected date: $selectedDueDate")
         val calendar = Calendar.getInstance()
-        if (selectedDueDate != null) { calendar.time = selectedDueDate!! }
+        selectedDueDate?.let { calendar.time = it } // Use existing date if available
 
         val datePickerDialog = DatePickerDialog(
             requireContext(),
@@ -573,41 +648,52 @@ class AddTaskDialogFragment : DialogFragment() {
                 val selectedCalendar = Calendar.getInstance()
                 selectedCalendar.set(selectedYear, selectedMonth, selectedDay)
 
-                // Preserve existing time if any, otherwise set to midnight
-                if (selectedDueTime != null) {
-                    selectedCalendar.set(Calendar.HOUR_OF_DAY, selectedDueTime!!.get(Calendar.HOUR_OF_DAY))
-                    selectedCalendar.set(Calendar.MINUTE, selectedDueTime!!.get(Calendar.MINUTE))
-                    selectedCalendar.set(Calendar.SECOND, selectedDueTime!!.get(Calendar.SECOND))
-                    selectedCalendar.set(Calendar.MILLISECOND, selectedDueTime!!.get(Calendar.MILLISECOND))
+                // Preserve existing time if selectedDueTime is set, otherwise set to midnight
+                // Important: If selectedDueTime exists, use its time components, BUT use the DATE from the date picker
+                val finalCalendar = selectedCalendar.apply {
+                    selectedDueTime?.let { timeCal ->
+                        set(Calendar.HOUR_OF_DAY, timeCal.get(Calendar.HOUR_OF_DAY))
+                        set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE))
+                        set(Calendar.SECOND, timeCal.get(Calendar.SECOND))
+                        set(Calendar.MILLISECOND, timeCal.get(Calendar.MILLISECOND))
+                    } ?: run {
+                        // If no time was previously selected, set time to midnight for a date-only selection
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                }
+
+
+                selectedDueDate = finalCalendar.time
+                // Update selectedDueTime *only if time was previously selected* so updateDueTimeButtonText works
+                // If a date is picked *after* time was picked, we update the calendar instance backing selectedDueTime.
+                // If a date is picked and *no time was ever picked*, selectedDueTime remains null.
+                if (selectedDueTime != null || (finalCalendar.get(Calendar.HOUR_OF_DAY) != 0 || finalCalendar.get(Calendar.MINUTE) != 0)) {
+                    selectedDueTime = finalCalendar // Update the Calendar instance with the new date part IF time is relevant
                 } else {
-                    selectedCalendar.set(Calendar.HOUR_OF_DAY, 0)
-                    selectedCalendar.set(Calendar.MINUTE, 0)
-                    selectedCalendar.set(Calendar.SECOND, 0)
-                    selectedCalendar.set(Calendar.MILLISECOND, 0)
+                    selectedDueTime = null // Ensure time is null if resulting date is midnight and no time was picked
                 }
 
-                selectedDueDate = selectedCalendar.time
-                // selectedDueTime is potentially updated here if it was previously set
-                if (selectedDueTime != null) {
-                    selectedDueTime = selectedCalendar // Update the Calendar instance with the new date
-                }
 
-                Log.d(TAG, "Selected Due Date after picker: $selectedDueDate")
-                updateDueDateButtonText()
-                // updateDueTimeButtonText() // May need update if time was reset to midnight
+                Log.d(TAG, "Selected Due Date after picker: $selectedDueDate, Selected Due Time (Calendar): ${selectedDueTime?.time}")
+                updateDueDateButtonText() // Only updates contentDescription/icon
+                // No need to update time text here unless time picker was also used - the text for time is on buttonDueTime
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
         // Optional: Set min/max date
-        // datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000 // Prevent selecting past dates
+        // datePickerDialog.datePicker.minDate = System.currentTimeMillis() - 1000 // Prevent selecting past dates (careful with timezones)
         datePickerDialog.show()
     }
 
     private fun showTimePicker() {
         Log.d(TAG, "Showing Time Picker. Current selected time: ${selectedDueTime?.time}")
         val calendar = Calendar.getInstance()
+        // Use current time if no time was previously selected
         val initialHour = selectedDueTime?.get(Calendar.HOUR_OF_DAY) ?: calendar.get(Calendar.HOUR_OF_DAY)
         val initialMinute = selectedDueTime?.get(Calendar.MINUTE) ?: calendar.get(Calendar.MINUTE)
 
@@ -616,6 +702,7 @@ class AddTaskDialogFragment : DialogFragment() {
             { _, selectedHour, selectedMinute ->
                 Log.d(TAG, "Time selected: $selectedHour:$selectedMinute")
                 // Use existing date if selectedDueDate is set, otherwise use today's date
+                // Important: If selectedDueDate exists, use its date components, BUT use the TIME from the time picker
                 val selectedCalendar = selectedDueDate?.let { Calendar.getInstance().apply { time = it } } ?: Calendar.getInstance()
 
                 selectedCalendar.set(Calendar.HOUR_OF_DAY, selectedHour)
@@ -623,12 +710,12 @@ class AddTaskDialogFragment : DialogFragment() {
                 selectedCalendar.set(Calendar.SECOND, 0) // Clear seconds/milliseconds
                 selectedCalendar.set(Calendar.MILLISECOND, 0)
 
-                selectedDueTime = selectedCalendar
-                selectedDueDate = selectedCalendar.time // Update selectedDueDate with time component
+                selectedDueTime = selectedCalendar // Always set selectedDueTime when time is picked
+                selectedDueDate = selectedCalendar.time // Update selectedDueDate with the new date+time value
 
-                Log.d(TAG, "Selected Due Time after picker: ${selectedDueTime?.time}")
-                updateDueTimeButtonText()
-                updateDueDateButtonText() // Update date text too as it now includes time
+                Log.d(TAG, "Selected Due Date/Time after time picker: ${selectedDueTime?.time}")
+                updateDueTimeButtonText() // Only updates contentDescription/icon
+                updateDueDateButtonText() // Only updates contentDescription/icon (to include time if present)
             },
             initialHour,
             initialMinute,
@@ -647,7 +734,8 @@ class AddTaskDialogFragment : DialogFragment() {
             getString(R.string.reminder_early_1d)
         )
 
-        val selectedIndex = prototypeReminderOptions.indexOf(selectedReminderLabel)
+        // Find the index of the currently selected label. Default to 0 ("On Time") if not found.
+        val selectedIndex = prototypeReminderOptions.indexOf(selectedReminderLabel).takeIf { it != -1 } ?: 0
 
 
         val builder = AlertDialog.Builder(requireContext())
@@ -655,7 +743,7 @@ class AddTaskDialogFragment : DialogFragment() {
             .setSingleChoiceItems(prototypeReminderOptions, selectedIndex) { dialog, which ->
                 selectedReminderLabel = prototypeReminderOptions[which] // Store the selected string label
                 Log.d(TAG, "Reminder label selected from picker: $selectedReminderLabel")
-                updateReminderTypeButtonTextAndIcon()
+                updateReminderTypeButtonTextAndIcon() // Updates icon and contentDescription
                 dialog.dismiss()
             }
             .setNegativeButton(getString(R.string.cancel), null)
@@ -673,13 +761,13 @@ class AddTaskDialogFragment : DialogFragment() {
     //region // --- Update UI based on selections ---
     private fun updatePriorityButtonIcon() {
         val iconResId = when (selectedPriority) {
-            Task.Priority.NONE -> R.drawable.flag_svgrepo_com_none // Ensure these drawable names are correct
+            Task.Priority.NONE -> R.drawable.flag_svgrepo_com_none
             Task.Priority.LOW -> R.drawable.flag_svgrepo_com_low
             Task.Priority.MEDIUM -> R.drawable.flag_svgrepo_com_medium
             Task.Priority.HIGH -> R.drawable.flag_svgrepo_com_high
         }
         binding.buttonPriority.setImageResource(iconResId)
-        // Add tinting based on priority color if you have it
+        // Optional: Add tinting based on priority color if you have it
         // Example tinting (requires color resources like R.color.priority_low, etc.)
         /*
         val tintColorResId = when (selectedPriority) {
@@ -688,7 +776,11 @@ class AddTaskDialogFragment : DialogFragment() {
             Task.Priority.MEDIUM -> R.color.priority_medium
             Task.Priority.HIGH -> R.color.priority_high
         }
-        binding.buttonPriority.setColorFilter(ContextCompat.getColor(requireContext(), tintColorResId), PorterDuff.Mode.SRC_IN)
+         try {
+            binding.buttonPriority.setColorFilter(ContextCompat.getColor(requireContext(), tintColorResId), PorterDuff.Mode.SRC_IN)
+         } catch (e: Exception) {
+             Log.e(TAG, "Error applying priority tint", e)
+         }
         */
         Log.d(TAG, "Priority icon updated for: $selectedPriority")
     }
@@ -703,37 +795,61 @@ class AddTaskDialogFragment : DialogFragment() {
         val dateTimeFormat = SimpleDateFormat("EEE, MMM d, yyyy 'at' HH:mm", Locale.getDefault()) // Format with time
 
         if (selectedDueDate != null) {
-            // Check if there is a time component (i.e., selectedDueTime is not null or date's time is not midnight)
-            val cal = Calendar.getInstance().apply { time = selectedDueDate!! }
-            // Consider dateOnly if selectedDueTime is null OR if the time component is midnight (as set by date-only parse)
-            val hasTime = selectedDueTime != null && (cal.get(Calendar.HOUR_OF_DAY) != 0 || cal.get(Calendar.MINUTE) != 0 || cal.get(Calendar.SECOND) != 0 || cal.get(Calendar.MILLISECOND) != 0)
+            // Check if there is a time component (i.e., selectedDueTime is not null OR the date's time is not midnight)
+            // Use selectedDueTime as the definitive source for the time component if it exists.
+            // If selectedDueTime is null, check if the date itself has a non-midnight time (could happen if loaded from storage before split)
+            // Correctly determine if a time component should be shown based on selectedDueTime primarily
+            val hasTimeComponent = selectedDueTime != null // Rely primarily on selectedDueTime Calendar
 
-            if (hasTime) {
-                binding.buttonDueDate.contentDescription = dateTimeFormat.format(selectedDueDate)
-                binding.buttonDueDate.setImageResource(R.drawable.baseline_calendar_today_24) // Calendar icon? Maybe a calendar+clock icon?
+            val textToShow = if (hasTimeComponent) {
+                try { dateTimeFormat.format(selectedDueDate) } catch (e: Exception) { dateFormat.format(selectedDueDate) + " (Invalid Time)" }
             } else {
-                binding.buttonDueDate.contentDescription = dateFormat.format(selectedDueDate)
-                binding.buttonDueDate.setImageResource(R.drawable.baseline_calendar_today_24) // Just calendar icon
+                dateFormat.format(selectedDueDate)
             }
-            Log.d(TAG, "DueDate button text updated to: ${binding.buttonDueDate.contentDescription}")
+
+            // FIX 5: Remove setting text on ImageButton. Only update contentDescription and icon.
+            // binding.buttonDueDate.text = textToShow // REMOVED
+            binding.buttonDueDate.contentDescription = textToShow // Accessibility text
+            binding.buttonDueDate.setImageResource(R.drawable.baseline_calendar_today_24) // Use calendar icon
+            binding.buttonDueTime.visibility = View.VISIBLE // Always show time button when date is selected
+            Log.d(TAG, "DueDate button content description updated to: ${binding.buttonDueDate.contentDescription}")
 
         } else {
-            binding.buttonDueDate.contentDescription = getString(R.string.select_due_date)
+            // FIX 5: Remove setting text on ImageButton. Only update contentDescription and icon.
+            // binding.buttonDueDate.text = getString(R.string.select_due_date) // REMOVED
+            binding.buttonDueDate.contentDescription = getString(R.string.select_due_date) // Accessibility text
             binding.buttonDueDate.setImageResource(R.drawable.baseline_calendar_today_24) // Reset icon if cleared
-            Log.d(TAG, "DueDate button text reset to default.")
+            binding.buttonDueTime.visibility = View.VISIBLE // Always visible? Let's keep visible.
+            Log.d(TAG, "DueDate button content description reset to default.")
         }
     }
+
+    // Helper extension function to check if a Date object has a non-midnight time component
+    // This is less relevant now that we rely on selectedDueTime, but keep for robustness
+    private fun Date.hasTimeComponent(): Boolean {
+        val calendar = Calendar.getInstance().apply { time = this@hasTimeComponent }
+        return calendar.get(Calendar.HOUR_OF_DAY) != 0 ||
+                calendar.get(Calendar.MINUTE) != 0 ||
+                calendar.get(Calendar.SECOND) != 0 ||
+                calendar.get(Calendar.MILLISECOND) != 0
+    }
+
 
     private fun updateDueTimeButtonText() {
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
         if (selectedDueTime != null) {
-            binding.buttonDueTime.contentDescription = timeFormat.format(selectedDueTime!!.time)
+            val textToShow = timeFormat.format(selectedDueTime!!.time)
+            // FIX 5: Remove setting text on ImageButton. Only update contentDescription and icon.
+            // binding.buttonDueTime.text = textToShow // REMOVED
+            binding.buttonDueTime.contentDescription = textToShow // Accessibility text
             binding.buttonDueTime.setImageResource(R.drawable.clock_svgrepo_com) // Clock icon
-            Log.d(TAG, "DueTime button text updated to: ${binding.buttonDueTime.contentDescription}")
+            Log.d(TAG, "DueTime button content description updated to: ${binding.buttonDueTime.contentDescription}")
         } else {
-            binding.buttonDueTime.contentDescription = getString(R.string.select_due_time)
+            // FIX 5: Remove setting text on ImageButton. Only update contentDescription and icon.
+            // binding.buttonDueTime.text = getString(R.string.select_due_time) // REMOVED
+            binding.buttonDueTime.contentDescription = getString(R.string.select_due_time) // Accessibility text
             binding.buttonDueTime.setImageResource(R.drawable.clock_svgrepo_com) // Reset icon if cleared
-            Log.d(TAG, "DueTime button text reset to default.")
+            Log.d(TAG, "DueTime button content description reset to default.")
         }
     }
 
@@ -741,11 +857,15 @@ class AddTaskDialogFragment : DialogFragment() {
         // Determine icon based on whether it's "On Time" or any "Early" type
         val iconResId = when (selectedReminderLabel) {
             getString(R.string.reminder_ontime) -> R.drawable.bell_svgrepo_com // Default alarm icon
-            else -> R.drawable.rounded_circle_24 // Use a different icon for set reminder? Assuming rounded_circle_24 is a suitable placeholder
+            // Add icons for other reminder types if available
+            else -> R.drawable.bell_svgrepo_com // Use a different icon for set reminder? Example placeholder - Using same bell for now
         }
         binding.buttonReminderType.setImageResource(iconResId)
-        binding.buttonReminderType.contentDescription = selectedReminderLabel.ifBlank { getString(R.string.select_reminder_type) }
-        Log.d(TAG, "ReminderType button updated. Label: $selectedReminderLabel")
+        binding.buttonReminderType.contentDescription = selectedReminderLabel.ifBlank { getString(R.string.select_reminder_type) } // Accessibility
+        // Update button text as well for clarity
+        // FIX 6: Remove setting text on ImageButton. Only update contentDescription and icon.
+        // binding.buttonReminderType.text = selectedReminderLabel.ifBlank { getString(R.string.select_reminder_type) } // REMOVED
+        Log.d(TAG, "ReminderType button updated. Content Description: ${binding.buttonReminderType.contentDescription}")
     }
 
     // TODO: Add updateRepeatModeButtonText()
@@ -755,7 +875,7 @@ class AddTaskDialogFragment : DialogFragment() {
 
     // --- Handle Save Click and Send Result --- (Existing code)
     private fun handleSaveTaskClick() {
-        Log.d(TAG, "Add/Save task button clicked.")
+        Log.d(TAG, "Add/Save task button clicked. Task ID: ${taskIdToEdit ?: "New Task"}")
         val title = binding.editTextTaskTitle.text.toString().trim()
         val description = binding.editTextTaskDescription.text.toString().trim()
 
@@ -765,43 +885,37 @@ class AddTaskDialogFragment : DialogFragment() {
             return
         }
 
-        // Finalize the dueDate by combining Date and Time components
-        val finalDueDate = if (selectedDueDate != null) {
-            val calendar = Calendar.getInstance().apply { time = selectedDueDate!! }
-            if (selectedDueTime != null) {
-                // Combine date part from selectedDueDate and time part from selectedDueTime
-                calendar.set(Calendar.HOUR_OF_DAY, selectedDueTime!!.get(Calendar.HOUR_OF_DAY))
-                calendar.set(Calendar.MINUTE, selectedDueTime!!.get(Calendar.MINUTE))
-                calendar.set(Calendar.SECOND, 0) // Keep seconds/milliseconds consistent (usually 0 from pickers/parse)
-                calendar.set(Calendar.MILLISECOND, 0)
-            } else {
-                // If only date was selected/parsed, ensure time is midnight
-                calendar.set(Calendar.HOUR_OF_DAY, 0)
-                calendar.set(Calendar.MINUTE, 0)
-                calendar.set(Calendar.SECOND, 0)
-                calendar.set(Calendar.MILLISECOND, 0)
+        // Finalize the dueDate by combining Date and Time components from state variables
+        // This logic is crucial as selectedDueDate might be Date-only or Date+Time,
+        // and selectedDueTime (if not null) contains the preferred time.
+        val finalDueDate: Date? = when {
+            selectedDueTime != null -> {
+                // If time was picked/parsed as Calendar, use its time
+                selectedDueTime!!.time
             }
-            calendar.time
-        } else {
-            null // No date selected/parsed
+            selectedDueDate != null -> {
+                // If no time was picked (selectedDueTime is null), but a date was picked/parsed as Date
+                // Use the selectedDueDate, but ensure time is midnight
+                Calendar.getInstance().apply {
+                    time = selectedDueDate!!
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }.time
+            }
+            else -> null // Neither date nor time was selected/parsed
         }
-        Log.d(TAG, "Final Due Date calculated: $finalDueDate")
+        Log.d(TAG, "Final Due Date calculated: $finalDueDate (based on selectedDueDate=$selectedDueDate, selectedDueTime=${selectedDueTime?.time})")
 
 
-        val standardReminderType = when (selectedReminderLabel) {
-            getString(R.string.reminder_ontime) -> "ON_TIME"
-            getString(R.string.reminder_early_30m) -> "EARLY_30M"
-            getString(R.string.reminder_early_1h) -> "EARLY_1H"
-            getString(R.string.reminder_early_3h) -> "EARLY_3H"
-            getString(R.string.reminder_early_1d) -> "EARLY_1D"
-            else -> "ON_TIME" // Default if label is not recognized
-        }
+        // Map the selected Reminder Label back to the standard ReminderType string
+        val standardReminderType = mapLabelToReminderType(selectedReminderLabel)
         Log.d(TAG, "Final Reminder Type: $standardReminderType (from label: $selectedReminderLabel)")
 
 
         // Create or update the Task object
-        val task = Task(
-            id = taskIdToEdit, // Will be null for new tasks
+        val task = (originalTaskToEdit ?: Task(id = taskIdToEdit)).copy( // Use originalTaskToEdit if exists, otherwise create a new Task with potential id
             title = title,
             description = description.ifBlank { null },
             priority = selectedPriority.name,
@@ -810,13 +924,15 @@ class AddTaskDialogFragment : DialogFragment() {
             dueDate = finalDueDate, // Use the combined finalDueDate
             repeatMode = selectedRepeatMode.name, // Will be "NONE" if not implemented
             reminderType = standardReminderType, // Store the standard string
-            status = Task.TaskStatus.PENDING.name, // Assume pending unless loading an existing completed task
-            type = Task.TaskType.TASK.name // Assuming it's always a task
+            // Status should generally not be changed via this dialog, except maybe if editing a completed task?
+            // For now, keep original status if editing, default to PENDING if adding.
+            status = originalTaskToEdit?.status ?: Task.TaskStatus.PENDING.name,
+            type = originalTaskToEdit?.type ?: Task.TaskType.TASK.name // Assuming it's always a task
         )
 
         // Determine the request key based on whether we are adding or editing
         val requestKey = if (task.id != null) TaskFragment.REQUEST_KEY_EDIT_TASK else TaskFragment.REQUEST_KEY_ADD_TASK
-        Log.d(TAG, "Task object created: $task. Sending result with key: $requestKey")
+        Log.d(TAG, "Task object created/updated: $task. Sending result with key: $requestKey")
 
         // Send the new/updated task back to the calling Fragment (TaskFragment)
         val resultBundle = Bundle().apply {
@@ -840,6 +956,7 @@ class AddTaskDialogFragment : DialogFragment() {
     }
 
     // Helper function to compare Dates ignoring time components (can be moved to utils)
+    // Used when comparing only the date part of parsed results
     private fun datesEqual(date1: Date?, date2: Date?): Boolean {
         if (date1 == null && date2 == null) return true
         if (date1 == null || date2 == null) return false
@@ -851,12 +968,15 @@ class AddTaskDialogFragment : DialogFragment() {
     }
 
     // Helper function to compare Calendar instances for time components (can be moved to utils)
+    // Used when comparing the time part of parsed results (which come as a Calendar)
     private fun calendarsEqual(cal1: Calendar?, cal2: Calendar?): Boolean {
         if (cal1 == null && cal2 == null) return true
         if (cal1 == null || cal2 == null) return false
         // Compare Hour and Minute, maybe Second if ML Kit provides it consistently
-        return cal1.get(Calendar.HOUR_OF_DAY) == cal2.get(Calendar.HOUR_OF_DAY) &&
-                cal1.get(Calendar.MINUTE) == cal2.get(Calendar.MINUTE)
-        // && cal1.get(Calendar.SECOND) == cal2.get(Calendar.SECOND) // Only if relevant
+        // Note: This only compares *time*, assuming the dates within the calendars might be different.
+        // For comparing if the *entire* date and time are the same, you'd use date.equals() or calendar.equals()
+        // But for parsing logic, we might get a new date but the same time, or vice versa.
+        // Let's compare full milliseconds for safety if it comes from ML Kit as a Calendar.
+        return cal1.timeInMillis == cal2.timeInMillis
     }
 }

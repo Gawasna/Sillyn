@@ -4,6 +4,7 @@ import com.gawasu.sillyn.domain.model.Task
 import com.gawasu.sillyn.domain.model.User
 import com.gawasu.sillyn.utils.FirebaseResult
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 interface FirestoreService {
     fun getTasks(userId: String): Flow<FirebaseResult<List<Task>>>
@@ -20,4 +21,5 @@ interface FirestoreService {
     fun getTasksByCategory(userId: String, category: String): Flow<FirebaseResult<List<Task>>>
     fun getUpcomingTasksWithDeadlines(userId: String): Flow<FirebaseResult<List<Task>>>
     fun getTasksById(userId: String, taskId: String): Flow<FirebaseResult<Task?>>
+    fun getTasksInRange(userId: String, startDate: Date, endDate: Date): Flow<FirebaseResult<List<Task>>>
 }

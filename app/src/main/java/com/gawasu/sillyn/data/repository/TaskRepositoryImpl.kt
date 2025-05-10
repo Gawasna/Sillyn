@@ -4,6 +4,7 @@ import com.gawasu.sillyn.data.remote.firestore.FirestoreDataSource
 import com.gawasu.sillyn.domain.model.Task
 import com.gawasu.sillyn.utils.FirebaseResult
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 import javax.inject.Inject
 
 class TaskRepositoryImpl @Inject constructor(
@@ -25,4 +26,6 @@ class TaskRepositoryImpl @Inject constructor(
 
     override fun getTaskById(userId: String, taskId: String): Flow<FirebaseResult<Task?>> = firestoreDataSource.getTaskById(userId, taskId)
     override fun getUpcomingTasksWithDeadlines(userId: String): Flow<FirebaseResult<List<Task>>> = firestoreDataSource.getUpcomingTasksWithDeadlines(userId)
+
+    override fun getTasksInRange(userId: String, startDate: Date, endDate: Date): Flow<FirebaseResult<List<Task>>> = firestoreDataSource.getTasksInRange(userId, startDate, endDate)
 }

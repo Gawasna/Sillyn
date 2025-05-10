@@ -8,26 +8,48 @@
         app:showAsAction="ifRoom|collapseActionView"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
-    <!-- Thêm các item menu khác specific cho TaskFragment ở đây -->
-    <!-- Ví dụ: -->
-    <!-- <item
-        android:id="@+id/action_filter_tasks"
-        android:title="Lọc"
-        android:icon="@drawable/ic_filter"
-        app:showAsAction="ifRoom"/> -->
-
+    <!-- Item cha cho các tùy chọn lọc/sắp xếp -->
     <item
+        android:id="@+id/action_filter_tasks"
+        android:title="Lọc &amp; Sắp xếp"
+        android:icon="@drawable/options_vertical_svgrepo_com"
+        app:showAsAction="ifRoom">
+        <menu>
+            <!-- Các mục sắp xếp -->
+            <item
+                android:id="@+id/action_sort_priority"
+                android:title="Sắp xếp theo Độ ưu tiên" />
+            <item
+                android:id="@+id/action_sort_due_date"
+                android:title="Sắp xếp theo Ngày đến hạn" />
+            <!-- Optional: Thêm sắp xếp theo tạo/cập nhật, etc. -->
+
+            <!-- Dấu phân cách -->
+            <item
+                android:id="@+id/action_separator"
+                android:title=""
+                android:enabled="false"/>
+
+            <!-- Tùy chọn ẩn task hoàn thành (toggle) -->
+            <item
+                android:id="@+id/action_hide_completed"
+                android:title="Ẩn đã hoàn thành"
+                android:checkable="true"
+                android:checked="false"/>
+
+        </menu>
+    </item>
+
+    <!-- Mục "Ẩn/Hiện chi tiết" không triển khai lúc này -->
+    <!-- <item
         android:id="@+id/action_detail_task"
         android:title="Ẩn/Hiện chi tiết"
-        app:showAsAction="never" />
+        app:showAsAction="never" /> -->
 
-    <item
+    <!-- Mục "Ẩn đã hoàn thành" cũ, đã được chuyển vào item "Lọc & Sắp xếp" -->
+    <!-- <item
         android:id="@+id/action_acp_task"
         android:title="Ẩn đã hoàn thành"
-        app:showAsAction="never" />
+        app:showAsAction="never" /> -->
 
-    <item
-        android:id="@+id/action_filter_tasks"
-        android:title="Lọc"
-        app:showAsAction="never" />
 </menu>

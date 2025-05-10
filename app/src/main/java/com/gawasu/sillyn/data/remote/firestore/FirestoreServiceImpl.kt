@@ -5,11 +5,13 @@ import com.gawasu.sillyn.domain.model.Task
 import com.gawasu.sillyn.domain.model.User
 import com.gawasu.sillyn.utils.FirebaseResult
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 class FirestoreServiceImpl @Inject constructor(
@@ -29,11 +31,15 @@ class FirestoreServiceImpl @Inject constructor(
         const val GET_TASKS_BY_CATEGORY = "GET_TASKS_BY_CATEGORY"
         const val GET_UPCOMING_TASKS = "GET_UPCOMING_TASKS"
         const val GET_TASK_BY_ID = "GET_TASK_BY_ID"
+        const val GET_TASKS_IN_RANGE = "GET_TASKS_IN_RANGE"
     }
 
     override fun getTasks(userId: String): Flow<FirebaseResult<List<Task>>> = callbackFlow {
         Log.d(TAG, GET_TASKS + " is getting called")
-        val collectionRef = firestore.collection("user").document(userId).collection("tasks")
+        val collectionRef = firestore
+            .collection("user")
+            .document(userId)
+            .collection("tasks")
         val snapshotListener = collectionRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 trySend(FirebaseResult.Error(error))
@@ -41,12 +47,14 @@ class FirestoreServiceImpl @Inject constructor(
             }
             if (snapshot != null) {
                 val tasks = snapshot.documents.mapNotNull { document ->
+                    Log.d(TAG, document.toString())
                     document.toObject(Task::class.java)?.apply {
-                        id = document.id // Set document ID as task ID
+                        id = document.id
                     }
                 }
                 trySend(FirebaseResult.Success(tasks))
             } else {
+                Log.d(TAG, "Documents seem null")
                 trySend(FirebaseResult.Error(Exception("Tasks data not found")))
             }
         }
@@ -303,4 +311,36 @@ class FirestoreServiceImpl @Inject constructor(
         awaitClose { snapshotListener.remove() }
     }
 
+    override fun getTasksInRange(userId: String, startDate: Date, endDate: Date): Flow<FirebaseResult<List<Task>>> = callbackFlow {
+        Log.d(TAG, "$GET_TASKS_IN_RANGE is getting called for range: $startDate to $endDate")
+        val collectionRef = firestore.collection("user").document(userId).collection("tasks")
+
+        // Firestore query for tasks where dueDate is >= startDate and < endDate
+        // Using < endDate ensures tasks exactly at the start of endDate are not included
+        // which is standard for time ranges [start, end)
+        val query = collectionRef
+            .whereGreaterThanOrEqualTo("dueDate", startDate)
+            .whereLessThan("dueDate", endDate) // Use < endDate for exclusive end
+            .orderBy("dueDate", Query.Direction.ASCENDING) // Order by date
+
+        val snapshotListener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                trySend(FirebaseResult.Error(error))
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                val tasks = snapshot.documents.mapNotNull { document ->
+                    document.toObject(Task::class.java)?.apply {
+                        id = document.id
+                    }
+                }
+                Log.d(TAG, "$GET_TASKS_IN_RANGE found ${tasks.size} tasks")
+                trySend(FirebaseResult.Success(tasks))
+            } else {
+                Log.d(TAG, "$GET_TASKS_IN_RANGE snapshot is null")
+                trySend(FirebaseResult.Success(emptyList())) // Treat null snapshot as empty list
+            }
+        }
+        awaitClose { snapshotListener.remove() }
+    }
 }

@@ -39,14 +39,14 @@ class TaskReminderScheduler @Inject constructor(
             return
         }
         val dueDate = task.dueDate ?: run {
-            Log.d(TAG, "Task '${task.title}' has no due date, not scheduling reminder.")
+            Log.d(TAG, "Task '${task.title}' (ID: $taskId) has no due date, not scheduling reminder.")
             cancelReminder(taskId) // Cancel any old reminder if due date was removed
             return
         }
 
         // Ensure the task is still pending
         if (task.status != Task.TaskStatus.PENDING.name) {
-            Log.d(TAG, "Task '${task.title}' status is not PENDING, not scheduling reminder.")
+            Log.d(TAG, "Task '${task.title}' (ID: $taskId) status is not PENDING, not scheduling reminder.")
             cancelReminder(taskId) // Cancel if task is completed/abandoned/etc.
             return
         }
@@ -54,15 +54,17 @@ class TaskReminderScheduler @Inject constructor(
         // Calculate the actual time to trigger the alarm
         val reminderTime = ReminderTimeCalculator.calculateReminderTime(task)
 
-        if (reminderTime == null) {
-            Log.d(TAG, "Calculated reminder time for '${task.title}' is in the past or invalid, not scheduling.")
-            cancelReminder(taskId) // Cancel any old reminder if the new time is invalid
+        // Ensure the calculated reminder time is not null and is in the future
+        if (reminderTime == null || reminderTime.before(Date())) { // Check if time is null OR in the past
+            val timeState = if (reminderTime == null) "null" else "in the past (${reminderTime})"
+            Log.d(TAG, "Calculated reminder time for '${task.title}' (ID: $taskId) is $timeState, not scheduling.")
+            cancelReminder(taskId) // Cancel any old reminder if the new time is invalid or in the past
             return
         }
 
         // First, cancel any existing alarm for this task to avoid duplicates
         cancelReminder(taskId)
-        Log.d(TAG, "Cancelled potentially existing reminder for task ID: $taskId")
+        Log.d(TAG, "Cancelled potentially existing reminder for task ID: $taskId before rescheduling.")
 
 
         // Create the Intent for the ReminderReceiver
@@ -74,8 +76,7 @@ class TaskReminderScheduler @Inject constructor(
         }
 
         // Create a unique PendingIntent for this task ID
-        // Request code should be unique per task. Using task ID hash or just a generated int is common.
-        // A simple hash of the task ID string is often sufficient.
+        // Request code should be unique per task. Using task ID hash is common.
         val requestCode = taskId.hashCode() // Unique request code based on task ID
 
         val pendingIntent = PendingIntent.getBroadcast(
@@ -88,7 +89,6 @@ class TaskReminderScheduler @Inject constructor(
 
         // Schedule the alarm
         val triggerTimeMillis = reminderTime.time
-        Log.d(TAG, "Scheduling reminder for task '${task.title}' (ID: $taskId) at ${Date(triggerTimeMillis)}")
 
         when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -100,7 +100,7 @@ class TaskReminderScheduler @Inject constructor(
                         triggerTimeMillis,
                         pendingIntent
                     )
-                    Log.d(TAG, "Scheduled exact alarm for task ID: $taskId (API 31+)")
+                    Log.d(TAG, "Scheduled exact alarm for task ID: $taskId (API 31+) at ${Date(triggerTimeMillis)}")
                 } else {
                     Log.e(TAG, "Exact alarm permission not granted, cannot schedule for task ID: $taskId")
                     // Optionally inform the user they need to grant the permission
@@ -114,7 +114,7 @@ class TaskReminderScheduler @Inject constructor(
                     triggerTimeMillis,
                     pendingIntent
                 )
-                Log.d(TAG, "Scheduled exact alarm for task ID: $taskId (API 23-30)")
+                Log.d(TAG, "Scheduled exact alarm for task ID: $taskId (API 23-30) at ${Date(triggerTimeMillis)}")
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT -> {
                 // Use setExact for API 19-22
@@ -123,7 +123,7 @@ class TaskReminderScheduler @Inject constructor(
                     triggerTimeMillis,
                     pendingIntent
                 )
-                Log.d(TAG, "Scheduled exact alarm for task ID: $taskId (API 19-22)")
+                Log.d(TAG, "Scheduled exact alarm for task ID: $taskId (API 19-22) at ${Date(triggerTimeMillis)}")
             }
             else -> {
                 // Use set for older APIs
@@ -132,7 +132,7 @@ class TaskReminderScheduler @Inject constructor(
                     triggerTimeMillis,
                     pendingIntent
                 )
-                Log.d(TAG, "Scheduled alarm for task ID: $taskId (API < 19)")
+                Log.d(TAG, "Scheduled alarm for task ID: $taskId (API < 19) at ${Date(triggerTimeMillis)}")
             }
         }
     }
@@ -143,8 +143,9 @@ class TaskReminderScheduler @Inject constructor(
     fun cancelReminder(taskId: String) {
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             action = ACTION_SHOW_REMINDER
-            // The extras don't strictly matter for cancellation, but using the same
-            // intent structure as when setting it is good practice.
+            // It's crucial that the intent filter matching is the same as when setting,
+            // but extras might not be needed for cancellation matching depending on how the system resolves it.
+            // Putting the ID back is safer for consistency, though potentially not strictly necessary for matching the PendingIntent.
             putExtra(EXTRA_TASK_ID, taskId)
         }
 
@@ -152,19 +153,20 @@ class TaskReminderScheduler @Inject constructor(
         val requestCode = taskId.hashCode()
 
         // The PendingIntent flags must match the ones used when setting the alarm EXACTLY for cancellation to work reliably.
-        // This is a common pitfall. FLAG_NO_CREATE is important here.
+        // FLAG_NO_CREATE is important here to avoid creating a new PendingIntent if none exists.
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             requestCode,
             intent,
             PendingIntent.FLAG_NO_CREATE or // Don't create if it doesn't exist
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0 // Must match flags used when setting!
         )
 
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
             Log.d(TAG, "Cancelled reminder for task ID: $taskId")
-            pendingIntent.cancel() // Also cancel the PendingIntent itself
+            // It's often recommended to cancel the PendingIntent itself after cancelling the alarm.
+            // pendingIntent.cancel() // Optional but good practice
         } else {
             Log.d(TAG, "No existing reminder found to cancel for task ID: $taskId")
         }
