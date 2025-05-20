@@ -403,11 +403,25 @@ class TaskFragment : Fragment(), TaskAdapter.OnItemClickListener { // Implement 
 
     override fun onCheckboxClick(task: Task, isChecked: Boolean) {
         Log.d(TAG, "Task checkbox clicked: ${task.title}, isChecked: $isChecked")
+
         val updatedStatus = if (isChecked) Task.TaskStatus.COMPLETED.name else Task.TaskStatus.PENDING.name
-        // Create a *copy* of the task with updated status
+        val originalStatus = task.status
+
         val updatedTask = task.copy(status = updatedStatus)
         currentUserId?.let { userId ->
             viewModel.updateTask(userId, updatedTask)
+
+            if (isChecked) {
+                Snackbar.make(
+                    binding.taskListCoordinatorLayout,
+                    getString(R.string.task_marked_completed, task.title),
+                    Snackbar.LENGTH_LONG
+                ).setAction(getString(R.string.undo)) {
+                    val originalTask = task.copy(status = originalStatus)
+                    viewModel.updateTask(userId, originalTask)
+                    Log.d(TAG, "Undo action clicked for task: ${task.title}. Reverting status to $originalStatus.")
+                }.show()
+            }
         } ?: Log.e(TAG, "Cannot update task status, currentUserId is null")
     }
 

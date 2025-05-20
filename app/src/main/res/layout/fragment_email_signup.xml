@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"> <!-- Make sure the content fills the ScrollView -->
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,7 +13,7 @@
         android:orientation="vertical"
         android:gravity="center_horizontal"
         android:paddingBottom="24dp"
-        tools:context=".ui.auth.EmailLoginFragment">
+        tools:context=".ui.auth.EmailSignupFragment"> <!-- Cập nhật context fragment -->
 
         <!-- Header with Back Button and Title -->
         <LinearLayout
@@ -34,13 +34,13 @@
                 android:contentDescription="@string/back_to_login"
                 android:src="@drawable/baseline_arrow_back_24"
                 app:tint="?android:textColorPrimary"
-                tools:ignore="TouchTargetSizeCheck" /> <!-- Use theme color -->
+                tools:ignore="TouchTargetSizeCheck" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/login_title"
+                android:text="@string/signup_title"
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="?android:textColorPrimary"
@@ -56,6 +56,7 @@
             android:contentDescription="@string/app_name"
             android:src="@drawable/full_ww_crop" /> <!-- Sử dụng logo của bạn -->
 
+
         <!-- Input Fields Container -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -68,48 +69,64 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEmail"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/email_address"
-            android:layout_marginBottom="16dp"> <!-- Tăng khoảng cách -->
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress" />
-        </com.google.android.material.textfield.TextInputLayout>
+                android:hint="@string/email_address"
+                android:layout_marginBottom="16dp">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilPassword"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/password"
-        app:passwordToggleEnabled="true"
-        android:layout_marginBottom="24dp"> <!-- Tăng khoảng cách -->
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="textPassword" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPassword"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/password"
+                app:passwordToggleEnabled="true"
+                android:layout_marginBottom="16dp">
 
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/login"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:layout_marginBottom="16dp"/>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Removed btnSignup from here -->
+            <!-- Confirm Password Field (NEW) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilConfirmPassword"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/confirm_password"
+                app:passwordToggleEnabled="true"
+                android:layout_marginBottom="24dp"> <!-- Tăng khoảng cách -->
 
-    <!-- Link to Signup -->
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etConfirmPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <Button
+                android:id="@+id/btnSignup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/signup"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Link to Login -->
             <TextView
-                android:id="@+id/tvGoToSignup"
+                android:id="@+id/tvGoToLogin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -117,11 +134,11 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="8dp"
-                android:text="@string/go_to_signup"
+                android:text="@string/go_to_login"
                 android:textColor="?attr/colorPrimary"
                 android:textSize="14sp"
                 tools:ignore="TouchTargetSizeCheck" />
 
-</LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-    </ScrollView>
+</ScrollView>

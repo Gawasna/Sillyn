@@ -8,7 +8,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes // Import AudioAttributes
+import android.media.AudioManager // Import AudioManager (optional, for stream type)
+import android.net.Uri // Import Uri
 import android.os.Build
+import android.provider.Settings // Import Settings
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -27,6 +31,7 @@ import javax.inject.Inject
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
+import kotlinx.coroutines.flow.first // Import first
 
 @AndroidEntryPoint
 class ReminderReceiver : BroadcastReceiver() {
@@ -63,42 +68,31 @@ class ReminderReceiver : BroadcastReceiver() {
                     coroutineScope.launch {
                         try {
                             // Fetch the task details from the repository
-                            // Assuming getTaskById returns a Flow of FirebaseResult<Task?>
-                            taskRepository.getTaskById(userId, taskId).collect { result ->
-                                when (result) {
-                                    is FirebaseResult.Loading -> {
-                                        // Handle loading if necessary (e.g., show a placeholder notification)
-                                        Log.d(TAG, "Loading task $taskId for reminder...")
-                                    }
-                                    is FirebaseResult.Success -> {
-                                        val task = result.data
-                                        if (task != null && task.status == Task.TaskStatus.PENDING.name) {
-                                            Log.d(TAG, "Task $taskId loaded successfully. Showing notification.")
-                                            showNotification(context, task, userId) // Pass userId for actions
-                                        } else {
-                                            Log.d(TAG, "Task $taskId not found, completed, or abandoned. Not showing reminder.")
-                                            // Cancel the alarm if the task is no longer pending
-                                            // Note: This requires injecting TaskReminderScheduler here or having a mechanism
-                                            // to cancel it. For simplicity now, we just won't show the notification.
-                                            // Proper handling might involve a UseCase or Manager called from here.
-                                        }
-                                        // Finish the async operation once data is processed
-                                        pendingResult.finish()
-                                    }
-                                    is FirebaseResult.Error -> {
-                                        Log.e(TAG, "Error fetching task $taskId for reminder: ${result.exception.message}", result.exception)
-                                        // Finish the async operation on error
-                                        pendingResult.finish()
-                                    }
+                            // Use .first() to get the latest value and stop observing
+                            val taskResult = taskRepository.getTaskById(userId, taskId).first()
+                            when (taskResult) {
+                                is FirebaseResult.Loading -> {
+                                    // Handle loading if necessary (e.g., show a placeholder notification)
+                                    // For .first(), this state might be skipped or short-lived
+                                    Log.d(TAG, "Loading task $taskId for reminder...")
                                 }
-                                // Assuming collect will eventually finish or handle lifecycle correctly.
-                                // For a single fetch, maybe just a suspend function in repo is better than Flow here if not observing changes.
-                                // If getTaskById flow emits multiple times, ensure you only show notification once per trigger.
-                                // A simple suspend taskRepository.getTaskById(userId, taskId).first() or single() might be better if you only need the current state.
-                                // Let's assume getTaskById is suspend fun or we collect only once.
-                                if (result !is FirebaseResult.Loading) {
-                                    // Stop collecting after first non-Loading result
-                                    return@collect
+                                is FirebaseResult.Success -> {
+                                    val task = taskResult.data
+                                    // Only show notification if task exists AND is still PENDING
+                                    if (task != null && task.status == Task.TaskStatus.PENDING.name) {
+                                        Log.d(TAG, "Task $taskId loaded successfully. Showing notification.")
+                                        showNotification(context, task, userId) // Pass userId for actions
+                                    } else {
+                                        Log.d(TAG, "Task $taskId not found, completed, or abandoned. Not showing reminder.")
+                                        // In a real app, you might cancel the alarm here if task is not PENDING.
+                                    }
+                                    // Finish the async operation once data is processed
+                                    pendingResult.finish()
+                                }
+                                is FirebaseResult.Error -> {
+                                    //Log.e(TAG, "Error fetching task $taskId for reminder: ${result.exception.message}", result.exception)
+                                    // Finish the async operation on error
+                                    pendingResult.finish()
                                 }
                             }
                         } catch (e: Exception) {
@@ -116,11 +110,14 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 
     private fun showNotification(context: Context, task: Task, userId: String) {
-        createNotificationChannel(context)
+        // Ensure the channel is created/updated before showing the notification
+        createNotificationChannel(context, task.priority) // Pass priority to channel creation if needed for sound setting
+
         // Generate a unique notification ID based on task ID
         val notificationId = task.id.hashCode()
 
         // --- Create PendingIntents for Notification Actions ---
+        // (Code for completePendingIntent, dismissPendingIntent, completeAction, dismissAction remains the same)
         // Action: Complete Task
         val completeIntent = Intent(context, NotificationActionReceiver::class.java).apply {
             action = NotificationActionReceiver.ACTION_COMPLETE_TASK
@@ -164,11 +161,7 @@ class ReminderReceiver : BroadcastReceiver() {
         // TODO: Add Snooze Action
 
         // --- Build Notification Content ---
-
-        // Example: "Nhiệm vụ: Làm bài tập Android sau 30 phút nữa"
-        //           "Đến hạn: 08/05/2025 12:40 PM"
-        //           "Độ ưu tiên: Trung bình"
-
+        // (Code for notificationTitle, notificationText, contentIntent, contentPendingIntent remains the same)
         val timeDifferenceLabel = ReminderTimeCalculator.getTimeDifferenceLabel(task.reminderType, context)
         val title = task.title
         val notificationTitle = if (timeDifferenceLabel.isNotBlank()) {
@@ -192,10 +185,9 @@ class ReminderReceiver : BroadcastReceiver() {
 
         // --- Add Description if present ---
         val descriptionText = if (!task.description.isNullOrBlank()) {
-            // Có thể thêm nhãn "Mô tả:" hoặc hiển thị trực tiếp
-            task.description // Chỉ hiển thị mô tả nếu có
+            task.description
         } else {
-            "" // Chuỗi rỗng nếu không có mô tả
+            ""
         }
 
         val notificationTextParts = listOf(
@@ -205,10 +197,6 @@ class ReminderReceiver : BroadcastReceiver() {
         ).filter { it.isNotBlank() }
         val notificationText = notificationTextParts.joinToString("\n")
 
-        // Optional: Intent to open the app/task details when clicking the notification body
-        // Need to decide where to navigate (e.g., MainActivity, straight to TaskFragment list)
-        // This requires setting up deep links or navigating via Activity Intents.
-        // For simplicity now, let's just open the main activity.
         val contentIntent = context.packageManager.getLaunchIntentForPackage(context.getPackageName())
         contentIntent?.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK // Clear activity stack
 
@@ -233,16 +221,27 @@ class ReminderReceiver : BroadcastReceiver() {
             .addAction(completeAction) // Add action buttons
             .addAction(dismissAction)
             // Add more actions here (e.g., Snooze)
-            // .setSound(null) // Default sound, or set a specific sound - We will set this later
-            // .setDefaults(NotificationCompat.DEFAULT_ALL) // Default lights, vibration, sound (can customize)
             .setCategory(NotificationCompat.CATEGORY_REMINDER) // Hint to the system about the notification type
 
 
-        // --- Set Default Sound (Requirement 3) ---
-        // You can use setSound or setDefaults(NotificationCompat.DEFAULT_SOUND)
-        // Using setDefaults(NotificationCompat.DEFAULT_SOUND | NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_LIGHTS)
-        // is common to get default behavior unless you customize them.
+        // --- Set Default Sound, Vibrate, Lights ---
+        // Note: This sets the defaults on the *builder*.
+        // The channel configuration in createNotificationChannel ultimately controls
+        // whether sound/vibrate/lights are enabled for the channel itself.
+        // We set it here as a good practice, but the channel setting is dominant.
         builder.setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE or NotificationCompat.DEFAULT_LIGHTS)
+
+        // --- ADDED: Override sound/vibration/lights settings on the builder if priority is NONE ---
+        if (task.priority == Task.Priority.NONE.name) {
+            Log.d(TAG, "Task priority is NONE. Silencing notification sound and disabling vibrate/lights.")
+            // Explicitly set sound/vibration/lights to null/0 for this specific notification instance
+            builder.setSound(null)
+            builder.setVibrate(longArrayOf(0)) // Disable vibration
+            builder.setLights(0, 0, 0) // Disable lights
+        }
+        // ---------------------------------------------------------
+
+
         // Check for POST_NOTIFICATIONS permission on API 33+ before showing
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -260,25 +259,66 @@ class ReminderReceiver : BroadcastReceiver() {
     }
 
     // Create Notification Channel for Android 8.0 (Oreo) and higher
-    private fun createNotificationChannel(context: Context) {
+    // We pass priority here, but the primary sound configuration should be on the channel itself.
+    // We will configure the channel to have the default sound.
+    private fun createNotificationChannel(context: Context, taskPriority: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_HIGH // High importance for reminders
+            // Importance level: High is suitable for reminders that should make sound and appear prominently.
+            val importance = NotificationManager.IMPORTANCE_HIGH
+
+            // Get the NotificationManager service
+            val notificationManager: NotificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+            // Check if the channel already exists. If so, no need to recreate unless settings change.
+            // For simplicity and ensuring settings are applied, we can create it every time,
+            // but Android only creates it if it doesn't exist or updates it if settings change
+            // (though explicit updates might be needed for some properties).
+            // A safer way for complex apps might be to create channels in Application class or a dedicated setup point.
+            // For this minimal update, we'll let it run here, it's generally fine.
+
+            // Create the channel
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
                 NOTIFICATION_CHANNEL_NAME,
                 importance
             ).apply {
                 description = NOTIFICATION_CHANNEL_DESCRIPTION
-                enableLights(true)
-                lightColor = context.getColor(R.color.purple_500) // Replace with your color
-                enableVibration(true)
-                setSound(null, null) // Use default sound or specify one
+                enableLights(true) // Enable lights
+                lightColor = context.getColor(R.color.purple_500) // Set light color
+                enableVibration(true) // Enable vibration patterns
+
+                // --- UPDATED: Set Default System Sound for the Channel ---
+                // This makes the channel capable of playing the default notification sound.
+                // Any notification using this channel will inherit this unless overridden on the builder.
+                val audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION) // For notifications
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION) // For sounds accompanying events
+                    //.setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED) // Optional: enforce audibility
+                    .build()
+
+                // Use the default notification sound URI
+                val defaultSoundUri: Uri? = Settings.System.DEFAULT_NOTIFICATION_URI
+
+                if (defaultSoundUri != null) {
+                    setSound(defaultSoundUri, audioAttributes)
+                    Log.d(TAG, "Notification channel sound set to default system sound.")
+                } else {
+                    // Fallback or log if default sound URI is null (shouldn't happen normally)
+                    setSound(null, null) // Keep it silent if default URI is not found
+                    Log.w(TAG, "Default notification sound URI not found. Channel sound set to null.")
+                }
+                // --------------------------------------------------------
+
+                // Optional: Set vibration pattern. DEFAULT_VIBRATE uses system default.
+                // val vibrationPattern = longArrayOf(0, 250, 200, 250) // Example pattern: delay, vibrate, delay, vibrate
+                // setVibrationPattern(vibrationPattern)
+                // setVibrationPattern(NotificationCompat.DEFAULT_VIBRATE) // Using default is simplest
             }
+
             // Register the channel with the system
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
-            Log.d(TAG, "Notification channel '$NOTIFICATION_CHANNEL_ID' created.")
+            Log.d(TAG, "Notification channel '$NOTIFICATION_CHANNEL_ID' created/updated.")
         }
     }
 }

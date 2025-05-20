@@ -183,5 +183,13 @@
     <!-- Strings cho dialog xác nhận xóa -->
     <string name="confirm_delete_title">Xác nhận xóa</string>
     <string name="confirm_delete_message">Bạn có chắc chắn muốn xóa nhiệm vụ "%1$s" không?</string>
+    <string name="no_account_signup_link">Không có tài khoản?</string>
+    <string name="go_to_signup">Đăng ký</string>
+    <string name="login_title">Đăng nhập</string>
+    <string name="go_to_login">Đăng nhập</string>
+    <string name="signup_title">Đăng ký</string>
+
+    <string name="task_marked_completed">Đã hoàn thành nhiệm vụ: %s</string>
+    <string name="undo">Hoàn tác</string>
 
 </resources>

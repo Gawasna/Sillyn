@@ -1,4 +1,5 @@
 package com.gawasu.sillyn.ui.fragment
+
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.os.Bundle
@@ -10,10 +11,11 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels // Sử dụng activityViewModels để share ViewModel
 import com.gawasu.sillyn.R
 import com.gawasu.sillyn.databinding.FragmentAuthenticationOptionsBinding
-import com.gawasu.sillyn.ui.auth.EmailLoginFragment
+import com.gawasu.sillyn.ui.fragment.EmailSignupFragment
+import com.gawasu.sillyn.ui.fragment.EmailLoginFragment
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
 import com.gawasu.sillyn.utils.FirebaseResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -23,11 +25,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import dagger.hilt.android.AndroidEntryPoint
-import androidx.fragment.app.activityViewModels
+
 @AndroidEntryPoint
 class AuthenticationOptionsFragment : Fragment() {
     private var _binding: FragmentAuthenticationOptionsBinding? = null
     private val binding get() = _binding!!
+    // Sử dụng activityViewModels nếu AuthViewModel được share scope với Activity
     private val authViewModel: AuthViewModel by activityViewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
@@ -49,7 +52,7 @@ class AuthenticationOptionsFragment : Fragment() {
 
         setupGoogleSignIn()
         setupClickListeners()
-        // Removed observeViewModel() from Fragment
+        // observeViewModel() được xử lý ở Activity
     }
 
     private fun setupGoogleSignIn() {
@@ -68,7 +71,7 @@ class AuthenticationOptionsFragment : Fragment() {
                     handleGoogleSignInResult(task)
                 }
             } else {
-                Toast.makeText(requireContext(), "Google Sign-in Cancelled", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Đăng nhập Google bị hủy", Toast.LENGTH_SHORT).show() // Cập nhật string
             }
         }
     }
@@ -76,7 +79,7 @@ class AuthenticationOptionsFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnLoginEmail.setOnClickListener {
-            showEmailLoginFragment()
+            showEmailLoginFragment() // Chuyển đến màn hình Login
         }
         binding.btnLoginGoogle.setOnClickListener {
             signInWithGoogle()
@@ -85,50 +88,55 @@ class AuthenticationOptionsFragment : Fragment() {
             showForgotPasswordFragment()
         }
         binding.tvSignUp.setOnClickListener {
-            showEmailLoginFragment(true) // Signup mode
+            showEmailSignupFragment() // Chuyển đến màn hình Đăng ký MỚI
         }
     }
-
-// Removed observeViewModel() from Fragment - Activity will handle navigation based on loginResult
-// Fragment just triggers the sign-in
 
     private fun signInWithGoogle() {
         val signInIntent = googleSignInClient.signInIntent
         googleSignInLauncher.launch(signInIntent)
     }
 
-
     private fun handleGoogleSignInResult(completedTask: Task<GoogleSignInAccount>) {
         try {
             val account: GoogleSignInAccount = completedTask.getResult(ApiException::class.java)
             account?.idToken?.let { idToken ->
-                authViewModel.signInWithGoogle(idToken) // Fragment triggers Google Sign-in in ViewModel
+                // Kích hoạt Google Sign-in trong ViewModel
+                authViewModel.signInWithGoogle(idToken)
             } ?: run {
-                Toast.makeText(requireContext(), "Google Sign-in failed: Account ID Token is null", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "Đăng nhập Google thất bại: ID Token rỗng", Toast.LENGTH_LONG).show() // Cập nhật string
                 Log.e(TAG, "Google Sign-in failed: Account ID Token is null")
             }
         } catch (e: ApiException) {
-            Toast.makeText(requireContext(), "Google Sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+            val errorMessage = e.localizedMessage ?: "Lỗi không xác định"
+            Toast.makeText(requireContext(), "Đăng nhập Google thất bại: $errorMessage", Toast.LENGTH_LONG).show() // Cập nhật string
             Log.e(TAG, "Google Sign-in failed", e)
         }
     }
 
+    // Hàm hiển thị Fragment Đăng nhập (không còn tham số isSignup)
+    private fun showEmailLoginFragment() {
+        val fragment = EmailLoginFragment() // Chỉ tạo EmailLoginFragment
+        replaceFragment(fragment)
+    }
 
-    private fun showEmailLoginFragment(isSignup: Boolean = false) {
-        val fragment = EmailLoginFragment.newInstance(isSignup)
+    // Hàm hiển thị Fragment Đăng ký (MỚI)
+    private fun showEmailSignupFragment() {
+        val fragment = EmailSignupFragment() // Tạo instance của Fragment Đăng ký
         replaceFragment(fragment)
     }
 
 
     private fun showForgotPasswordFragment() {
-        Toast.makeText(requireContext(), "Forgot Password Fragment is not implemented yet", Toast.LENGTH_SHORT).show()
+        Toast.makeText(requireContext(), "Chức năng Quên mật khẩu chưa được triển khai", Toast.LENGTH_SHORT).show() // Cập nhật string
+        // TODO: Implement Forgot Password Fragment
     }
 
 
     private fun replaceFragment(fragment: Fragment) {
         val transaction = parentFragmentManager.beginTransaction()
         transaction.replace(R.id.fragment_container_authentication, fragment)
-        transaction.addToBackStack(null)
+        transaction.addToBackStack(null) // Thêm vào back stack để có thể quay lại
         transaction.commit()
     }
 

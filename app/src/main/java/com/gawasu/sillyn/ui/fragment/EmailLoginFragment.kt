@@ -1,4 +1,5 @@
-package com.gawasu.sillyn.ui.auth
+package com.gawasu.sillyn.ui.fragment
+
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -6,39 +7,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels // Sử dụng activityViewModels để share ViewModel với Activity
 import com.gawasu.sillyn.R
-import com.gawasu.sillyn.databinding.FragmentEmailLoginBinding
+import com.gawasu.sillyn.databinding.FragmentEmailLoginBinding // Đảm bảo binding đúng
+import com.gawasu.sillyn.ui.fragment.EmailSignupFragment
 import com.gawasu.sillyn.ui.viewmodel.AuthViewModel
 import com.gawasu.sillyn.utils.FirebaseResult
 import dagger.hilt.android.AndroidEntryPoint
+
 @AndroidEntryPoint
 class EmailLoginFragment : Fragment() {
     private var _binding: FragmentEmailLoginBinding? = null
     private val binding get() = _binding!!
-    private val authViewModel: AuthViewModel by viewModels()
-    private var isSignupMode: Boolean = false
+    // Sử dụng activityViewModels nếu AuthViewModel được share scope với Activity
+    // Hoặc viewModels() nếu mỗi Fragment có ViewModel riêng (ít phổ biến cho auth)
+    private val authViewModel: AuthViewModel by activityViewModels()
 
     companion object {
-        private const val ARG_IS_SIGNUP = "arg_is_signup"
-        private const val TAG = "EMAIL LOGIN FRAGMENT"
-        fun newInstance(isSignup: Boolean = false): EmailLoginFragment {
-            val fragment = EmailLoginFragment()
-            val args = Bundle().apply {
-                putBoolean(ARG_IS_SIGNUP, isSignup)
-            }
-            fragment.arguments = args
-            return fragment
-        }
+        private const val TAG = "EmailLoginFragment" // Cập nhật TAG
     }
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            isSignupMode = it.getBoolean(ARG_IS_SIGNUP, false)
-        }
-    }
+    // Không cần newInstance với arg isSignup nữa
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,74 +40,49 @@ class EmailLoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupUI()
         setupClickListeners()
         observeViewModel()
+        // Không cần setupUI vì không còn chế độ signup trong fragment này
     }
-
-    private fun setupUI() {
-        if (isSignupMode) {
-            binding.btnLogin.visibility = View.GONE
-            binding.btnSignup.visibility = View.VISIBLE
-        } else {
-            binding.btnLogin.visibility = View.VISIBLE
-            binding.btnSignup.visibility = View.GONE
-        }
-    }
-
 
     private fun setupClickListeners() {
         binding.btnLogin.setOnClickListener {
             performLogin()
         }
-        binding.btnSignup.setOnClickListener {
-            performSignup()
-        }
         binding.btnBack.setOnClickListener {
+            // Quay lại màn hình AuthenticationOptionsFragment
             parentFragmentManager.popBackStack()
+        }
+        binding.tvGoToSignup.setOnClickListener {
+            // Chuyển sang Fragment đăng ký
+            showEmailSignupFragment()
         }
     }
 
     private fun observeViewModel() {
+        // Chỉ quan sát loginResult ở đây để xử lý lỗi hoặc loading.
+        // Việc điều hướng khi thành công sẽ do Activity xử lý.
         authViewModel.loginResult.observe(viewLifecycleOwner) { result ->
             when (result) {
                 is FirebaseResult.Loading -> {
                     Log.d(TAG, "Login Loading...")
-                    // TODO: Show loading - ví dụ progress bar
+                    // TODO: Hiển thị loading indicator
                 }
                 is FirebaseResult.Success -> {
-                    Log.d(TAG, "Login Success, handled by Activity")
-                    // Login success - Activity observer sẽ navigate
+                    Log.d(TAG, "Login Success from Fragment. Activity will handle navigation.")
+                    // Activity observer sẽ lo phần điều hướng.
+                    // TODO: Ẩn loading indicator nếu có.
                 }
                 is FirebaseResult.Error -> {
-                    Log.e(TAG, "Login Failed", result.exception)
+                    Log.e(TAG, "Login Failed in Fragment", result.exception)
                     val errorMessage = result.exception.localizedMessage ?: getString(R.string.authentication_error, "Unknown error")
                     Toast.makeText(requireContext(), getString(R.string.login_failed, errorMessage), Toast.LENGTH_LONG).show()
-                    // TODO: Hide loading
+                    // TODO: Ẩn loading indicator nếu có.
                 }
             }
         }
-        authViewModel.signUpResult.observe(viewLifecycleOwner) { result ->
-            when (result) {
-                is FirebaseResult.Loading -> {
-                    Log.d(TAG, "Signup Loading...")
-                    // TODO: Show loading
-                }
-                is FirebaseResult.Success -> {
-                    Log.d(TAG, "Signup Success, returning to AuthenticationOptionsFragment")
-                    Toast.makeText(requireContext(), getString(R.string.signup_successful_login_please), Toast.LENGTH_SHORT).show()
-                    parentFragmentManager.popBackStack() // Quay lại AuthenticationOptionsFragment sau signup thành công
-                }
-                is FirebaseResult.Error -> {
-                    Log.e(TAG, "Signup Failed", result.exception)
-                    val errorMessage = result.exception.localizedMessage ?: getString(R.string.authentication_error, "Unknown error")
-                    Toast.makeText(requireContext(), getString(R.string.signup_failed, errorMessage), Toast.LENGTH_LONG).show()
-                    // TODO: Hide loading
-                }
-            }
-        }
+        // Không quan sát signUpResult ở đây nữa
     }
-
 
     private fun performLogin() {
         val email = binding.etEmail.text.toString()
@@ -129,16 +93,7 @@ class EmailLoginFragment : Fragment() {
         }
     }
 
-    private fun performSignup() {
-        val email = binding.etEmail.text.toString()
-        val password = binding.etPassword.text.toString()
-
-        if (validateInput(email, password)) {
-            authViewModel.signUpWithEmailPassword(email, password)
-        }
-    }
-
-
+    // Giữ lại hàm validateInput, bỏ qua phần liên quan đến signup
     private fun validateInput(email: String, password: String): Boolean {
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             binding.tilEmail.error = getString(R.string.invalid_email)
@@ -155,6 +110,15 @@ class EmailLoginFragment : Fragment() {
         }
         return true
     }
+
+    private fun showEmailSignupFragment() {
+        val fragment = EmailSignupFragment() // Tạo instance của Fragment Đăng ký mới
+        val transaction = parentFragmentManager.beginTransaction()
+        transaction.replace(R.id.fragment_container_authentication, fragment)
+        transaction.addToBackStack(null) // Thêm vào back stack để có thể quay lại
+        transaction.commit()
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
